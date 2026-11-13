@@ -1,0 +1,57 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "clang-x64-base",
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/cmakes/toolchain-clang-x64.cmake",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "PROJECT_SUPPRESS_WARNINGS": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreadedDebugDLL",
+        "CMAKE_C_FLAGS": "-DUNICODE -D_UNICODE",
+        "CMAKE_CXX_FLAGS": "-DUNICODE -D_UNICODE"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Windows" ],
+          "intelliSenseMode": "windows-clang-x64"
+        }
+      }
+    },
+    {
+      "name": "clang-x64-debug",
+      "displayName": "clang-x64 debug",
+      "inherits": "clang-x64-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PROJECT_PRESET_TYPE": "clang-x64-debug"
+      }
+    },
+    {
+      "name": "clang-x64-release",
+      "displayName": "clangx64 elease",
+      "inherits": "clang-x64-base",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PROJECT_PRESET_TYPE": "clang-x64-release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "clang-x64-debug",
+      "configurePreset": "clang-x64-debug"
+    },
+    {
+      "name": "clang-x64-release",
+      "configurePreset": "clang-x64-release"
+    }
+  ]
+}

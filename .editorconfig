@@ -1,0 +1,20 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+rulers = 90
+guidelines = 90
+guidelines_style = 1px dashed darkgreen
+
+[*.{h,cpp,inl}]
+tab_width = 2
+indent_size = 2
+indent_style = space
+
+
+[{CMakeLists.txt,*.cmake}]
+indent_size = 2
+indent_style = space
