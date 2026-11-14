@@ -31,7 +31,8 @@
       "inherits": "clang-x64-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "AMARYL_PRESET_TYPE": "clang-x64-debug"
+        "AMARYL_PRESET_TYPE": "clang-x64-debug",
+        "AMARYL_ENABLE_TESTS": "ON"
       }
     },
     {

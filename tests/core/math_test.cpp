@@ -1,6 +1,7 @@
+#include "amaryl/core/math/math.h"
+
 #include <cmath>
 
-#include "amaryl/core/math/math.h"
 #include "amaryl/core/math/math_utils.h"
 #include "amaryl/core/math/uvec4.h"
 #include "amaryl/core/math/vector_aliases.h"
