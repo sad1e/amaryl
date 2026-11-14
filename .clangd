@@ -1,0 +1,19 @@
+CompileFlags:
+  CompilationDatabase: ./build/clang-x64-debug/
+
+Diagnostics:
+  Suppress:
+    [
+      attributes_not_allowed,
+      unused-includes,
+      missing-declarations,
+      builtin_definition,
+    ]
+
+InlayHints:
+  BlockEnd: true
+  Designators: true
+  Enabled: true
+  ParameterNames: false
+  DeducedTypes: true
+  TypeNameLimit: 24
