@@ -7,6 +7,8 @@ set(AMARYL_CORE_SOURCE_ROOT ${AMARYL_SOURCE_ROOT}/core)
 set(AMARYL_CORE_SOURCES
   ${AMARYL_CORE_INCLUDE_ROOT}/amaryl.h
   ${AMARYL_CORE_INCLUDE_ROOT}/assert.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/atomic.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/atomic_cxx11.h
   ${AMARYL_CORE_INCLUDE_ROOT}/config.h
   ${AMARYL_CORE_INCLUDE_ROOT}/hash_combine.h
   ${AMARYL_CORE_INCLUDE_ROOT}/macros.h
@@ -52,5 +54,7 @@ target_include_directories(${TARGET}
 )
 
 target_link_libraries(${TARGET}
-  PUBLIC "$<$<PLATFORM_ID:Windows>:dbghelp>"
+  PUBLIC
+    plog::plog
+    "$<$<PLATFORM_ID:Windows>:dbghelp>"
 )

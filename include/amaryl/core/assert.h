@@ -100,7 +100,9 @@ void CORE_API PrintStack();
 #undef HALT
 #endif
 
-#define HALT(...) HM_ERROR(__VA_ARGS__) __debugbreak();
+#define PLATFORM_BREAK() (__nop(), __debugbreak())
+
+#define HALT(...) HM_ERROR(__VA_ARGS__) PLATFORM_BREAK();
 
 #ifdef RELEASE
 
@@ -125,7 +127,7 @@ void CORE_API PrintStack();
     amaryl::PrintSubMessage(__VA_ARGS__);                     \
     amaryl::Print("\n");                                      \
     amaryl::PrintStack();                                     \
-    __debugbreak();                                           \
+    PLATFORM_BREAK();                                         \
   }
 
 #define ASSERT_SUCCEEDED(hr, ...)                           \
@@ -135,7 +137,7 @@ void CORE_API PrintStack();
     amaryl::PrintSubMessage("hr = 0x%08X", hr);             \
     amaryl::PrintSubMessage(__VA_ARGS__);                   \
     amaryl::Print("\n");                                    \
-    __debugbreak();                                         \
+    PLATFORM_BREAK();                                       \
   }
 
 #define WARN_ONCE_IF(isTrue, ...)                             \
@@ -164,4 +166,6 @@ void CORE_API PrintStack();
 #endif
 
 #define BreakIfFailed(hr) \
-  if (FAILED(hr)) __debugbreak()
+  if (FAILED(hr)) {       \
+    PLATFORM_BREAK();     \
+  }
