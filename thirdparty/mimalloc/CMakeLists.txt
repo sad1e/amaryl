@@ -44,9 +44,9 @@ option(MI_DEBUG_TSAN        "Build with thread sanitizer (needs clang)" OFF)
 option(MI_DEBUG_UBSAN       "Build with undefined-behavior sanitizer (needs clang++)" OFF)
 
 option(MI_BUILD_SHARED      "Build shared library" ON)
-option(MI_BUILD_STATIC      "Build static library" ON)
-option(MI_BUILD_OBJECT      "Build object library" ON)
-option(MI_BUILD_TESTS       "Build test executables" ON)
+option(MI_BUILD_STATIC      "Build static library" OFF)
+option(MI_BUILD_OBJECT      "Build object library" OFF)
+option(MI_BUILD_TESTS       "Build test executables" OFF)
 
 # OS specific
 option(MI_OSX_INTERPOSE     "Use interpose to override standard malloc on macOS" ON)

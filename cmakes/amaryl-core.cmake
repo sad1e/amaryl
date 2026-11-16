@@ -55,6 +55,7 @@ target_include_directories(${TARGET}
 
 target_link_libraries(${TARGET}
   PUBLIC
+    mimalloc
     plog::plog
     "$<$<PLATFORM_ID:Windows>:dbghelp>"
 )
