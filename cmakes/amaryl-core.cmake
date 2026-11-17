@@ -10,9 +10,13 @@ set(AMARYL_CORE_SOURCES
   ${AMARYL_CORE_INCLUDE_ROOT}/atomic.h
   ${AMARYL_CORE_INCLUDE_ROOT}/atomic_cxx11.h
   ${AMARYL_CORE_INCLUDE_ROOT}/config.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/handle.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/handle_pool.h
   ${AMARYL_CORE_INCLUDE_ROOT}/hash_combine.h
   ${AMARYL_CORE_INCLUDE_ROOT}/macros.h
   ${AMARYL_CORE_INCLUDE_ROOT}/murmur_hash.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/span.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/traits.h
   ${AMARYL_CORE_INCLUDE_ROOT}/types.h
 
   ${AMARYL_CORE_INCLUDE_ROOT}/allocator/allocator.h

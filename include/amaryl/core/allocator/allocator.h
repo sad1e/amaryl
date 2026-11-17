@@ -12,7 +12,7 @@ namespace amaryl {
 
 // Default allocation alignment. Mirrors VECTOR_ALIGNMENT so SIMD/vector types can
 // be allocated without extra work.
-inline constexpr size_t kDefaultAlignment = VECTOR_ALIGNMENT;
+inline constexpr size_t kDefaultAlignment = DEFAULT_ALIGNMENT;
 
 // Base interface for every memory allocator.
 //
@@ -53,7 +53,7 @@ class CORE_API IAllocator {
   // discard all live allocations; pool allocators rebuild their free list.
   virtual void Reset() {}
 
-  // --- STL-compatible convenience interface (operates on `value_type` == byte) ---
+  // vvv STL-compatible convenience interface (operates on `value_type` == byte) vvv
 
   [[nodiscard]] pointer allocate(size_type n) {
     return static_cast<pointer>(Allocate(n * sizeof(value_type), alignof(value_type)));
@@ -64,6 +64,8 @@ class CORE_API IAllocator {
   [[nodiscard]] size_type max_size() const noexcept {
     return size_type(-1) / sizeof(value_type);
   }
+
+  // ^^^ STL-compatible convenience interface ^^^
 };
 
 // Process-wide default allocator backed by mimalloc.

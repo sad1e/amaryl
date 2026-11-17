@@ -102,14 +102,11 @@ void CORE_API PrintStack();
 
 #define PLATFORM_BREAK() (__nop(), __debugbreak())
 
-#define HALT(...) HM_ERROR(__VA_ARGS__) PLATFORM_BREAK();
-
 #ifdef RELEASE
 
 #define ASSERT(isTrue, ...) (void)(isTrue)
 #define WARN_ONCE_IF(isTrue, ...) (void)(isTrue)
 #define WARN_ONCE_IF_NOT(isTrue, ...) (void)(isTrue)
-#define HM_ERROR(msg, ...)
 #define DEBUGPRINT(msg, ...) \
   do {                       \
   } while (0)
@@ -154,12 +151,6 @@ void CORE_API PrintStack();
   }
 
 #define WARN_ONCE_IF_NOT(isTrue, ...) WARN_ONCE_IF(!(isTrue), __VA_ARGS__)
-
-#define HM_ERROR(...)                                     \
-  amaryl::Print("\nError reported in " STRINGIFY_BUILTIN( \
-      __FILE__) " @ " STRINGIFY_BUILTIN(__LINE__) "\n");  \
-  amaryl::PrintSubMessage(__VA_ARGS__);                   \
-  amaryl::Print("\n");
 
 #define DEBUGPRINT(msg, ...) amaryl::Printf(msg "\n", ##__VA_ARGS__);
 

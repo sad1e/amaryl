@@ -56,7 +56,9 @@
   typedef          long    SSIZE_T;
 #endif
 
-#define HM_COUNTOF(x) _countof(x)
+#ifndef COUNTOF
+  #define COUNTOF(x) _countof(x)
+#endif
 
 // Vulkan platform definitions.
 #define VK_USE_PLATFORM_WIN32_KHR

@@ -44,6 +44,7 @@
 #endif
 
 
+#define DEFAULT_ALIGNMENT 16
 #define VECTOR_ALIGNMENT  16
 #define DVECTOR_ALIGNMENT 32
 

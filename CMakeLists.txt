@@ -37,6 +37,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${AMARYL_ROOT}/out/${AMARYL_PRESET_TYPE})
 
 include(amaryl-3rdparty)
 include(amaryl-core)
+include(amaryl-nrhi)
 if(AMARYL_ENABLE_TESTS)
   include(amaryl-tests)
 endif()
