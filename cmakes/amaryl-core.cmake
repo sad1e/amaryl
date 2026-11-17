@@ -18,6 +18,7 @@ set(AMARYL_CORE_SOURCES
   ${AMARYL_CORE_INCLUDE_ROOT}/span.h
   ${AMARYL_CORE_INCLUDE_ROOT}/traits.h
   ${AMARYL_CORE_INCLUDE_ROOT}/types.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/uuid.h
 
   ${AMARYL_CORE_INCLUDE_ROOT}/allocator/allocator.h
   ${AMARYL_CORE_INCLUDE_ROOT}/allocator/arena_allocator.h
@@ -69,7 +70,7 @@ target_include_directories(${TARGET}
 
 target_link_libraries(${TARGET}
   PUBLIC
-    mimalloc
-    plog::plog
-    "$<$<PLATFORM_ID:Windows>:dbghelp>"
+  mimalloc
+  plog::plog
+  "$<$<PLATFORM_ID:Windows>:dbghelp>"
 )

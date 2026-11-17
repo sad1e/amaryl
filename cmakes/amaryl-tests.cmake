@@ -22,4 +22,13 @@ if(BUILD_TESTING)
     target_include_directories(amaryl-allocator-test PRIVATE ${AMARYL_ROOT}/tests)
 
     add_test(NAME amaryl-allocator COMMAND amaryl-allocator-test)
+
+    add_executable(amaryl-uuid-test
+        ${AMARYL_ROOT}/tests/core/uuid_test.cpp
+    )
+
+    target_link_libraries(amaryl-uuid-test PRIVATE amaryl-core)
+    target_include_directories(amaryl-uuid-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-uuid COMMAND amaryl-uuid-test)
 endif()
