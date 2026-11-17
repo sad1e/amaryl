@@ -17,3 +17,18 @@ InlayHints:
   ParameterNames: false
   DeducedTypes: true
   TypeNameLimit: 24
+
+---
+If:
+  PathMatch:
+    - thirdparty/nanobench/src/comparisons/.*
+    - thirdparty/nanobench/src/test/.*
+Index:
+  Background: Skip
+Diagnostics:
+  Suppress: "*"
+  UnusedIncludes: None
+  MissingIncludes: None
+  ClangTidy:
+    Remove: "*"
+
