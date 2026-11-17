@@ -1,0 +1,5 @@
+add_subdirectory(cmake)
+add_subdirectory(include)
+if (NANOBENCH_BUILD_TEST)
+    add_subdirectory(test)
+endif()
