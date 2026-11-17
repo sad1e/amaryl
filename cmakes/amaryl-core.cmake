@@ -15,9 +15,19 @@ set(AMARYL_CORE_SOURCES
   ${AMARYL_CORE_INCLUDE_ROOT}/murmur_hash.h
   ${AMARYL_CORE_INCLUDE_ROOT}/types.h
 
+  ${AMARYL_CORE_INCLUDE_ROOT}/allocator/allocator.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/allocator/arena_allocator.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/allocator/bump_allocator.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/allocator/pool_allocator.h
+
   ${AMARYL_CORE_SOURCE_ROOT}/amaryl.cpp
   ${AMARYL_CORE_SOURCE_ROOT}/assert.cpp
   ${AMARYL_CORE_SOURCE_ROOT}/murmur_hash.cpp
+
+  ${AMARYL_CORE_SOURCE_ROOT}/allocator/allocator.cpp
+  ${AMARYL_CORE_SOURCE_ROOT}/allocator/arena_allocator.cpp
+  ${AMARYL_CORE_SOURCE_ROOT}/allocator/bump_allocator.cpp
+  ${AMARYL_CORE_SOURCE_ROOT}/allocator/pool_allocator.cpp
 )
 
 set(AMARYL_MATH_SOURCES

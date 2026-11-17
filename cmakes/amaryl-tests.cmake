@@ -13,4 +13,13 @@ if(BUILD_TESTING)
     target_include_directories(amaryl-math-test PRIVATE ${AMARYL_ROOT}/tests)
 
     add_test(NAME amaryl-math COMMAND amaryl-math-test)
+
+    add_executable(amaryl-allocator-test
+        ${AMARYL_ROOT}/tests/core/allocator_test.cpp
+    )
+
+    target_link_libraries(amaryl-allocator-test PRIVATE amaryl-core)
+    target_include_directories(amaryl-allocator-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-allocator COMMAND amaryl-allocator-test)
 endif()
