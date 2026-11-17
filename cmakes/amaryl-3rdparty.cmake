@@ -29,3 +29,6 @@ if(AMARYL_SUPPRESS_WARNINGS AND TARGET SDL3-shared)
     $<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:-Wno-unused-but-set-global>
   )
 endif()
+
+# pystring
+add_subdirectory(${AMARYL_3RDPARTY_ROOT}/pystring)
