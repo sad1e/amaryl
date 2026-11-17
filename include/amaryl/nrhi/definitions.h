@@ -15,15 +15,15 @@ constexpr uint32 MAX_MIP_LEVELS = 16;
 constexpr uint32 NRHI_WHOLE_SIZE = ~0ULL;
 constexpr uint32 NUM_GRAPHICS_SHADER_STAGES = 3;
 
-using ComputePipelineHandle = Handle<struct ComputePipelineTag>;
-using RenderPipelineHandle = Handle<struct RenderPipelineTag>;
-using RayTracingPipelineHandle = Handle<struct RayTracingPipelineTag>;
-using ShaderModuleHandle = Handle<struct ShaderModuleTag>;
-using SamplerHandle = Handle<struct SamplerTag>;
-using BufferHandle = Handle<struct BufferTag>;
-using TextureHandle = Handle<struct TextureTag>;
-using QueryPoolHandle = Handle<struct QueryPoolTag>;
-using AccelerationStructHandle = Handle<struct AccelerationStructureTag>;
+DECLARE_AMARYL_HANDLE(ComputePipeline);
+DECLARE_AMARYL_HANDLE(RenderPipeline);
+DECLARE_AMARYL_HANDLE(RayTracingPipeline);
+DECLARE_AMARYL_HANDLE(ShaderModule);
+DECLARE_AMARYL_HANDLE(Sampler);
+DECLARE_AMARYL_HANDLE(Buffer);
+DECLARE_AMARYL_HANDLE(Texture);
+DECLARE_AMARYL_HANDLE(QueryPool);
+DECLARE_AMARYL_HANDLE(AccelerationStruct);
 
 constexpr const char* kVertexEntryName = "vertexMain";
 constexpr const char* kTessControlEntryName = "tessControlMain";

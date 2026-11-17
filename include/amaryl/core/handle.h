@@ -70,3 +70,7 @@ struct Handle final {
 };
 
 }  // namespace amaryl
+
+// should be used in namespace amaryl.
+#define DECLARE_AMARYL_HANDLE(HandlePrefix) \
+  using HandlePrefix##Handle = Handle<struct HandlePrefix##Tag>

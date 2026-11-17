@@ -1,0 +1,26 @@
+#pragma once
+
+#include "amaryl/core/uuid.h"
+#include "amaryl/engine//asset_importer.h"
+
+namespace amaryl {
+
+constexpr uint32 kMaxAssetDebugName = 256;
+
+/**
+ * Asset is the resource in project, it include runtime resource and editor resource. The
+ * asset will strip all editor resource and be packed into pak files for running.
+ */
+struct Asset {
+ private:
+  // The unique id of asset.
+  Uuid uuid;
+
+#if AMARYL_EDITOR
+  const char debug_name_[kMaxAssetDebugName];
+#endif
+};
+
+struct AssetManager {};
+
+}  // namespace amaryl

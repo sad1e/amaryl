@@ -129,6 +129,3 @@ EnumRemoveFlags(Enum& Flags, Enum FlagsToRemove) {
     }                                                                          \
   } while (0)
 
-// clang-format off
-
-// clang-format on

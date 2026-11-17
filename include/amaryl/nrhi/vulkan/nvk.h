@@ -1100,7 +1100,7 @@ struct Context final : IContext {
   Pool<BufferTag, vk::VulkanBuffer> buffer_pool_;
   Pool<TextureTag, vk::VulkanImage> texture_pool_;
   Pool<QueryPoolTag, VkQueryPool> query_pool_;
-  Pool<AccelerationStructureTag, AccelerationStructure> acceleration_structure_pool_;
+  Pool<AccelerationStructTag, AccelerationStructure> acceleration_structure_pool_;
 };
 
 void emitImageQueueFamilyOwnershipTransfer(
