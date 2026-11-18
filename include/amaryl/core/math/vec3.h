@@ -114,7 +114,7 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Vec3 {
 
   /// A set of vectors uniformly spanning the surface of a unit sphere, usable
   /// for debug purposes
-  static const std::vector<Vec3> sUnitSphere;
+  CORE_API static const std::vector<Vec3> sUnitSphere;
 
   /// Get random unit vector
   template <class Random>

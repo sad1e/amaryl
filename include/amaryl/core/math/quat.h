@@ -120,7 +120,7 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Quat {
   /// the direction of inTo along the shortest path
   /// @see
   /// https://www.euclideanspace.com/maths/algebra/vectors/angleBetween/index.htm
-  static Quat sFromTo(Vec3Arg inFrom, Vec3Arg inTo);
+  CORE_API static Quat sFromTo(Vec3Arg inFrom, Vec3Arg inTo);
 
   /// Random unit quaternion
   template <class Random>
@@ -128,11 +128,11 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Quat {
 
   /// Conversion from Euler angles. Rotation order is intrinsic X-Y-Z
   /// (RotX * RotY * RotZ). Angles in radians.
-  static Quat sEulerAngles(Vec3Arg inAngles);
+  CORE_API static Quat sEulerAngles(Vec3Arg inAngles);
 
   /// Conversion to Euler angles. Rotation order is intrinsic X-Y-Z
   /// (RotX * RotY * RotZ). Angles in radians.
-  Vec3 GetEulerAngles() const;
+  CORE_API Vec3 GetEulerAngles() const;
 
   ///@name Length / normalization operations
   ///@{

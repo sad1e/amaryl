@@ -27,13 +27,13 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Rotator {
   Rotator() = default;
   Rotator(const Rotator&) = default;
   Rotator& operator=(const Rotator& inRHS) = default;
-  explicit Rotator(Vec4 inRHS);
+  CORE_API explicit Rotator(Vec4 inRHS);
   FORCE_INLINE Rotator(Type inRHS) : value_(inRHS) {}
-  explicit Rotator(const Quat& inQ);
+  CORE_API explicit Rotator(const Quat& inQ);
 
-  Rotator(float inPitch, float inRoll, float inYaw);
+  CORE_API Rotator(float inPitch, float inRoll, float inYaw);
 
-  static Rotator MakeFromEuler(const Vec3& inVec3);
+  CORE_API static Rotator MakeFromEuler(const Vec3& inVec3);
 
   FORCE_INLINE void SetPitch(float inPitch) { value_.SetX(inPitch); }
   FORCE_INLINE void SetYaw(float inYaw) { value_.SetZ(inYaw); }
@@ -73,9 +73,9 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Rotator {
   FORCE_INLINE float GetYaw() const { return value_.GetZ(); }
 
   /// Covnert Rotator(Pitch/Roll/Yaw system) to quaternion.
-  Quat GetQuat() const;
+  CORE_API Quat GetQuat() const;
 
-  Vec3 GetEulers() const;
+  CORE_API Vec3 GetEulers() const;
 
  private:
   Vec4 value_;

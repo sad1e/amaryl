@@ -74,9 +74,9 @@ inline void PrintSubMessage(const wchar_t* format, ...) {
 inline void PrintSubMessage(void) {}
 #endif
 
-void OutputDebugStringFormat(const wchar_t* format, ...);
+CORE_API void OutputDebugStringFormat(const wchar_t* format, ...);
 
-void CORE_API PrintStack();
+CORE_API void PrintStack();
 
 }  // namespace amaryl
 

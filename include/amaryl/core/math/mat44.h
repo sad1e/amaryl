@@ -221,23 +221,23 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Mat44 {
   FORCE_INLINE Mat44 Transposed3x3() const;
 
   /// Inverse 4x4 matrix
-  Mat44 Inversed() const;
+  CORE_API Mat44 Inversed() const;
 
   /// Inverse 4x4 matrix when it only contains rotation and translation
-  Mat44 InversedRotationTranslation() const;
+  CORE_API Mat44 InversedRotationTranslation() const;
 
   /// Get the determinant of a 3x3 matrix
-  float GetDeterminant3x3() const;
+  CORE_API float GetDeterminant3x3() const;
 
   /// Get the adjoint of a 3x3 matrix
-  Mat44 Adjointed3x3() const;
+  CORE_API Mat44 Adjointed3x3() const;
 
   /// Inverse 3x3 matrix
-  Mat44 Inversed3x3() const;
+  CORE_API Mat44 Inversed3x3() const;
 
   /// *this = inM.Inversed3x3(), returns false if the matrix is singular in
   /// which case *this is unchanged
-  bool SetInversed3x3(Mat44Arg inM);
+  CORE_API bool SetInversed3x3(Mat44Arg inM);
 
   /// Get rotation part only (note: retains the first 3 values from the bottom
   /// row)
@@ -250,7 +250,7 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Mat44 {
   FORCE_INLINE void SetRotation(Mat44Arg inRotation);
 
   /// Convert to quaternion
-  Quat GetQuaternion() const;
+  CORE_API Quat GetQuaternion() const;
 
   /// Get matrix that transforms a direction with the same transform as this
   /// matrix (length is not preserved)
@@ -278,7 +278,7 @@ class [[nodiscard]] alignas(VECTOR_ALIGNMENT) Mat44 {
   /// only holds when the matrix is orthogonal, if it is not the returned matrix
   /// will be made orthogonal using the modified Gram-Schmidt algorithm (see:
   /// https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process)
-  Mat44 Decompose(Vec3& outScale) const;
+  CORE_API Mat44 Decompose(Vec3& outScale) const;
 
   FORCE_INLINE void SetIdentity() { *this = Mat44::sIdentity(); }
 
