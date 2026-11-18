@@ -22,3 +22,4 @@ CMakeUserPresets.json
 ## Outputs
 [Bb]uild
 [Oo]ut
+EngineAssets/*

@@ -273,7 +273,7 @@ VkImageView VulkanImage::getOrCreateVkImageViewForFramebuffer(Context& ctx, uint
                  "ImageView: '%s' ImageViewForFrameBuffer[%u][%u][%u]", debug_name_,
                  level, layer, view_mask);
 
-  const uint32 num_views = view_mask ? CountBits(view_mask) : 1;
+  const uint32 num_views = view_mask ? count_bits(view_mask) : 1;
 
   VkImageView view = createImageView(
       ctx.getVkDevice(), view_mask ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,

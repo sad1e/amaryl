@@ -1,7 +1,7 @@
 #pragma once
 
 #include "amaryl/core/uuid.h"
-#include "amaryl/engine//asset_importer.h"
+#include "amaryl/engine/asset/asset_importer.h"
 
 namespace amaryl {
 

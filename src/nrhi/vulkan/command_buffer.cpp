@@ -1133,7 +1133,7 @@ void CommandBuffer::cmdDrawMeshTasksIndirect(BufferHandle indirect_buffer,
 void CommandBuffer::cmdDrawMeshTasksIndirectCount(BufferHandle indirect_buffer_handle,
                                                   size_t indirect_buffer_offset,
                                                   BufferHandle count_buffer_handle,
-                                                  size_t count_buffer_Offset,
+                                                  size_t count_buffer_offset,
                                                   uint32 max_draw_count, uint32 stride) {
   ASSERT(ctx_->has_EXT_mesh_shader_, TEXT("Mesh shaders not supported"));
 
@@ -1144,9 +1144,9 @@ void CommandBuffer::cmdDrawMeshTasksIndirectCount(BufferHandle indirect_buffer_h
   ASSERT(indirect_buffer);
   ASSERT(count_buffer);
 
-  vkCmdDrawIndexedIndirectCount(
+  vkCmdDrawMeshTasksIndirectCountEXT(
       wrapper_->cmdBuf, indirect_buffer->vk_handle_, indirect_buffer_offset,
-      count_buffer->vk_handle_, count_buffer_Offset, max_draw_count,
+      count_buffer->vk_handle_, count_buffer_offset, max_draw_count,
       stride ? stride : sizeof(VkDrawMeshTasksIndirectCommandEXT));
 }
 

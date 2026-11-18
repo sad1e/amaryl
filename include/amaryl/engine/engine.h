@@ -5,3 +5,4 @@
 // clang-format on
 
 #include "amaryl/core/amaryl.h"
+#include "amaryl/core/handle_pool.h"

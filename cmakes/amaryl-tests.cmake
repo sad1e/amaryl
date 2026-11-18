@@ -27,4 +27,49 @@ if(BUILD_TESTING)
     target_include_directories(amaryl-uuid-test PRIVATE ${AMARYL_ROOT}/tests)
 
     add_test(NAME amaryl-uuid COMMAND amaryl-uuid-test)
+
+    add_executable(amaryl-scene-graph-test
+        ${AMARYL_ROOT}/tests/engine/scene_graph_test.cpp
+    )
+
+    target_link_libraries(amaryl-scene-graph-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-scene-graph-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-scene-graph COMMAND amaryl-scene-graph-test)
+
+    add_executable(amaryl-mesh-asset-test
+        ${AMARYL_ROOT}/tests/engine/mesh_asset_test.cpp
+    )
+
+    target_link_libraries(amaryl-mesh-asset-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-mesh-asset-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-mesh-asset COMMAND amaryl-mesh-asset-test)
+
+    add_executable(amaryl-gpu-scene-test
+        ${AMARYL_ROOT}/tests/engine/gpu_scene_test.cpp
+    )
+
+    target_link_libraries(amaryl-gpu-scene-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-gpu-scene-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-gpu-scene COMMAND amaryl-gpu-scene-test)
+
+    add_executable(amaryl-gltf-import-test
+        ${AMARYL_ROOT}/tests/engine/gltf_import_test.cpp
+    )
+
+    target_link_libraries(amaryl-gltf-import-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-gltf-import-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-gltf-import COMMAND amaryl-gltf-import-test)
+
+    add_executable(amaryl-entity-test
+        ${AMARYL_ROOT}/tests/engine/entity_test.cpp
+    )
+
+    target_link_libraries(amaryl-entity-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-entity-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-entity COMMAND amaryl-entity-test)
 endif()
