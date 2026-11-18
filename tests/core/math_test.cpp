@@ -39,11 +39,11 @@ int main() {
     expect(Clamp(8, 0, 4) == 4);
     expect(Square(3) == 9);
     expect(Cube(-2) == -8);
-    expect(CountTrailingZeros(8) == 3u);
-    expect(CountLeadingZeros(1) == 31u);
-    expect(CountBits(0b101101u) == 4u);
-    expect(GetNextPowerOfTwo(9) == 16u);
-    expect(BitCast<uint32>(1.0f) == 0x3f800000u);
+    expect(count_trail_zeros(8) == 3u);
+    expect(count_lead_zeros(1) == 31u);
+    expect(count_bits(0b101101u) == 4u);
+    expect(get_next_power_of_2(9) == 16u);
+    expect(bit_cast<uint32>(1.0f) == 0x3f800000u);
     expect(Near(Sin(PI / 2), 1.0f));
     expect(Near(Cos(0.0f), 1.0f));
     expect(Near(ATan2(1.0f, 0.0f), PI / 2));

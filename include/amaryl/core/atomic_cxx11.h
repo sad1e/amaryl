@@ -26,19 +26,19 @@ struct TAtomicAdditiveType<T*> {
 
 template <int N>
 struct TAtomicTraits {
-  static inline bool IsLockFree();
+  static inline bool isLockFree();
 };
 
 // clang-format off
 #if ATOMIC_INT_LOCK_FREE == 2
   template <>
-  inline bool TAtomicTraits<4>::IsLockFree() { return true; }
+  inline bool TAtomicTraits<4>::isLockFree() { return true; }
 #elif ATOMIC_INT_LOCK_FREE == 1
   template <>
-  inline bool TAtomicTraits<4>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<4>::isLockFree() { return false; }
 #else
   template <>
-  inline bool TAtomicTraits<4>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<4>::isLockFree() { return false; }
 #endif
 
 template <>
@@ -46,13 +46,13 @@ struct TAtomicOperationsSupport<1> { enum { bSupported = 1 }; };
 #if ATOMIC_CHAR_LOCK_FREE == 2
   //> x86/x64 support, but arm instruction not support.
   template <>
-  inline bool TAtomicTraits<1>::IsLockFree() { return true; }
+  inline bool TAtomicTraits<1>::isLockFree() { return true; }
 #elif ATOMIC_CHAR_LOCK_FREE == 1
   template <>
-  inline bool TAtomicTraits<1>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<1>::isLockFree() { return false; }
 #else
   template <>
-  inline bool TAtomicTraits<1>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<1>::isLockFree() { return false; }
 #endif
 
 template <>
@@ -60,13 +60,13 @@ struct TAtomicOperationsSupport<2> { enum { bSupported = 1 }; };
 #if ATOMIC_SHORT_LOCK_FREE == 2
 
   template <>
-  inline bool TAtomicTraits<2>::IsLockFree() { return true; }
+  inline bool TAtomicTraits<2>::isLockFree() { return true; }
 #elif ATOMIC_SHORT_LOCK_FREE == 1
   template <>
-  inline bool TAtomicTraits<2>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<2>::isLockFree() { return false; }
 #else
   template <>
-  inline bool TAtomicTraits<2>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<2>::isLockFree() { return false; }
 #endif
 
 
@@ -74,13 +74,13 @@ template <>
 struct TAtomicOperationsSupport<8> { enum { bSupported = 1 }; };
 #if ATOMIC_LLONG_LOCK_FREE == 2
   template <>
-  inline bool TAtomicTraits<8>::IsLockFree() { return true; }
+  inline bool TAtomicTraits<8>::isLockFree() { return true; }
 #elif ATOMIC_LLONG_LOCK_FREE == 1
   template <>
-  inline bool TAtomicTraits<8>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<8>::isLockFree() { return false; }
 #else
   template <>
-  inline bool TAtomicTraits<8>::IsLockFree() { return false; }
+  inline bool TAtomicTraits<8>::isLockFree() { return false; }
 #endif
 
 // clang-format on
@@ -94,47 +94,47 @@ struct TAtomicOperations {
   typedef std::atomic<T> ValueType;
 
   template <typename Ty>
-  static inline Ty Load(const std::atomic<Ty>& v) noexcept {
+  static inline Ty load(const std::atomic<Ty>& v) noexcept {
     return v.load(std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty Load(const volatile std::atomic<Ty>& v) noexcept {
+  static inline Ty load(const volatile std::atomic<Ty>& v) noexcept {
     return v.load(std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty LoadRelaxed(const std::atomic<Ty>& v) noexcept {
+  static inline Ty loadRelaxed(const std::atomic<Ty>& v) noexcept {
     return v.load(std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty LoadRelaxed(const volatile std::atomic<Ty>& v) noexcept {
+  static inline Ty loadRelaxed(const volatile std::atomic<Ty>& v) noexcept {
     return v.load(std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty LoadAcquire(const std::atomic<Ty>& v) noexcept {
+  static inline Ty loadAcquire(const std::atomic<Ty>& v) noexcept {
     return v.load(std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline Ty LoadAcquire(const volatile std::atomic<Ty>& v) noexcept {
+  static inline Ty loadAcquire(const volatile std::atomic<Ty>& v) noexcept {
     return v.load(std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline void Store(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static inline void store(std::atomic<Ty>& v, Ty new_value) noexcept {
     v.store(new_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline void StoreRelaxed(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static inline void storeRelaxed(std::atomic<Ty>& v, Ty new_value) noexcept {
     v.store(new_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline void StoreRelease(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static inline void storeRelease(std::atomic<Ty>& v, Ty new_value) noexcept {
     v.store(new_value, std::memory_order_release);
   }
 
@@ -143,7 +143,7 @@ struct TAtomicOperations {
    */
 
   template <typename Ty>
-  static inline bool Ref(std::atomic<Ty>& v) {
+  static inline bool ref(std::atomic<Ty>& v) {
     /* Conceptually, we want to
      *    return ++v != 0;
      * However, that would be sequentially consistent, and thus stronger
@@ -161,177 +161,177 @@ struct TAtomicOperations {
   }
 
   template <typename Ty>
-  static inline bool DeRef(std::atomic<Ty>& v) noexcept {
+  static inline bool deRef(std::atomic<Ty>& v) noexcept {
     return v.fetch_sub(1, std::memory_order_acq_rel) != Ty(1);
   }
 
   template <typename Ty>
-  static Ty FetchStoreRelaxed(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static Ty fetchStoreRelaxed(std::atomic<Ty>& v, Ty new_value) noexcept {
     return v.exchange(new_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static Ty FetchStoreAcquire(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static Ty fetchStoreAcquire(std::atomic<Ty>& v, Ty new_value) noexcept {
     return v.exchange(new_value, std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static Ty FetchStoreRelease(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static Ty fetchStoreRelease(std::atomic<Ty>& v, Ty new_value) noexcept {
     return v.exchange(new_value, std::memory_order_release);
   }
 
   template <typename Ty>
-  static Ty FetchStoreOrdered(std::atomic<Ty>& v, Ty new_value) noexcept {
+  static Ty fetchStoreOrdered(std::atomic<Ty>& v, Ty new_value) noexcept {
     return v.exchange(new_value, std::memory_order_acq_rel);
   }
 
   template <typename Ty>
-  static inline Ty FetchAddRelaxed(
+  static inline Ty fetchAddRelaxed(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_add(add_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty FetchAddAcquire(
+  static inline Ty fetchAddAcquire(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_add(add_value, std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline Ty FetchAddRelease(
+  static inline Ty fetchAddRelease(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_add(add_value, std::memory_order_release);
   }
 
   template <typename Ty>
-  static inline Ty FetchAddOrdered(
+  static inline Ty fetchAddOrdered(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_add(add_value, std::memory_order_acq_rel);
   }
 
   template <typename Ty>
-  static inline Ty FetchSubRelaxed(
+  static inline Ty fetchSubRelaxed(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_sub(add_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty FetchSubAcquire(
+  static inline Ty fetchSubAcquire(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_sub(add_value, std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline Ty FetchSubRelease(
+  static inline Ty fetchSubRelease(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_sub(add_value, std::memory_order_release);
   }
 
   template <typename Ty>
-  static inline Ty FetchSubOrdered(
+  static inline Ty fetchSubOrdered(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_sub(add_value, std::memory_order_acq_rel);
   }
 
   template <typename Ty>
-  static inline Ty FetchAndRelaxed(
+  static inline Ty fetchAndRelaxed(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_and(add_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty FetchAndAcquire(
+  static inline Ty fetchAndAcquire(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_and(add_value, std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline Ty FetchAndRelease(
+  static inline Ty fetchAndRelease(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_and(add_value, std::memory_order_release);
   }
 
   template <typename Ty>
-  static inline Ty FetchAndOrdered(
+  static inline Ty fetchAndOrdered(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_and(add_value, std::memory_order_acq_rel);
   }
 
   template <typename Ty>
-  static inline Ty FetchOrRelaxed(
+  static inline Ty fetchOrRelaxed(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_or(add_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty FetchOrAcquire(
+  static inline Ty fetchOrAcquire(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_or(add_value, std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline Ty FetchOrRelease(
+  static inline Ty fetchOrRelease(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_or(add_value, std::memory_order_release);
   }
 
   template <typename Ty>
-  static inline Ty FetchOrOrdered(
+  static inline Ty fetchOrOrdered(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_or(add_value, std::memory_order_acq_rel);
   }
 
   template <typename Ty>
-  static inline Ty FetchXorRelaxed(
+  static inline Ty fetchXorRelaxed(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_xor(add_value, std::memory_order_relaxed);
   }
 
   template <typename Ty>
-  static inline Ty FetchXorAcquire(
+  static inline Ty fetchXorAcquire(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_xor(add_value, std::memory_order_acquire);
   }
 
   template <typename Ty>
-  static inline Ty FetchXorRelease(
+  static inline Ty fetchXorRelease(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_xor(add_value, std::memory_order_release);
   }
 
   template <typename Ty>
-  static inline Ty FetchXorOrdered(
+  static inline Ty fetchXorOrdered(
       std::atomic<Ty>& v,
       typename TAtomicAdditiveType<Ty>::AdditiveType add_value) noexcept {
     return v.fetch_xor(add_value, std::memory_order_acq_rel);
   }
 
-  static inline bool IsTestAndSetNative() noexcept {
+  static inline bool isTestAndSetNative() noexcept {
     return TAtomicTraits<sizeof(T)>::isLockFree();
   }
-  static inline constexpr bool IsTestAndSetWaitFree() noexcept { return false; }
+  static inline constexpr bool isTestAndSetWaitFree() noexcept { return false; }
 
   template <typename Ty>
-  static bool TestAndSetRelaxed(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
+  static bool testAndSetRelaxed(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
                                 Ty* current_value = nullptr) noexcept {
     bool t = value.compare_exchange_strong(
         expected_value, new_value, std::memory_order_relaxed, std::memory_order_relaxed);
@@ -342,7 +342,7 @@ struct TAtomicOperations {
   }
 
   template <typename Ty>
-  static bool TestAndSetAcquire(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
+  static bool testAndSetAcquire(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
                                 Ty* current_value = nullptr) noexcept {
     bool t = value.compare_exchange_strong(
         expected_value, new_value, std::memory_order_acquire, std::memory_order_acquire);
@@ -353,7 +353,7 @@ struct TAtomicOperations {
   }
 
   template <typename Ty>
-  static bool TestAndSetRelease(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
+  static bool testAndSetRelease(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
                                 Ty* current_value = nullptr) noexcept {
     bool t = value.compare_exchange_strong(
         expected_value, new_value, std::memory_order_release, std::memory_order_relaxed);
@@ -364,7 +364,7 @@ struct TAtomicOperations {
   }
 
   template <typename Ty>
-  static bool TestAndSetOrdered(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
+  static bool testAndSetOrdered(std::atomic<Ty>& value, Ty expected_value, Ty new_value,
                                 Ty* current_value = nullptr) noexcept {
     bool t = value.compare_exchange_strong(
         expected_value, new_value, std::memory_order_acq_rel, std::memory_order_acquire);
@@ -374,13 +374,13 @@ struct TAtomicOperations {
     return t;
   }
 
-  static inline bool IsReferenceCountingNative() noexcept { return isTestAndSetNative(); }
-  static inline constexpr bool IsReferenceCountingWaitFree() noexcept { return false; }
+  static inline bool isReferenceCountingNative() noexcept { return isTestAndSetNative(); }
+  static inline constexpr bool isReferenceCountingWaitFree() noexcept { return false; }
 
-  static inline bool IsFetchStoreNative() noexcept { return isTestAndSetNative(); }
-  static inline constexpr bool IsFetchStoreWaitFree() noexcept { return false; }
-  static inline bool IsFetchAddNative() noexcept { return isTestAndSetNative(); }
-  static inline constexpr bool IsFetchAddWaitFree() noexcept { return false; }
+  static inline bool isFetchStoreNative() noexcept { return isTestAndSetNative(); }
+  static inline constexpr bool isFetchStoreWaitFree() noexcept { return false; }
+  static inline bool isFetchAddNative() noexcept { return isTestAndSetNative(); }
+  static inline constexpr bool isFetchAddWaitFree() noexcept { return false; }
 };
 
 }  // namespace amaryl

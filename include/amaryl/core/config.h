@@ -72,21 +72,21 @@
   #define AMARYL_SSE_LEVEL AMARYL_SSE_NONE
 #endif
 
-#if AMARYL_SSE_LEVEL >= AMARYL_SSE4_2
-  #define AMARYL_USE_SSE4_2   1
-#elif AMARYL_SSE_LEVEL >= AMARYL_SSE4_1
-  #define AMARYL_USE_SSE4_1   1
-#elif AMARYL_SSE_LEVEL >= AMARYL_SSE
-  #define AMARYL_USE_SSE      1
-#endif
-
-#ifndef AMARYL_USE_SSE
+#if AMARYL_SSE_LEVEL >= AMARYL_SSE
+  #define AMARYL_USE_SSE    1
+#else
   #define AMARYL_USE_SSE    0
 #endif
-#ifndef AMARYL_USE_SSE4_1
+
+#if AMARYL_SSE_LEVEL >= AMARYL_SSE4_1
+  #define AMARYL_USE_SSE4_1 1
+#else
   #define AMARYL_USE_SSE4_1 0
 #endif
-#ifndef AMARYL_USE_SSE4_2
+
+#if AMARYL_SSE_LEVEL >= AMARYL_SSE4_2
+  #define AMARYL_USE_SSE4_2 1
+#else
   #define AMARYL_USE_SSE4_2 0
 #endif
 

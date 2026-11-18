@@ -555,7 +555,7 @@ void UVec4::StoreInt4Aligned(uint32* outV) const {
 
 int UVec4::CountTrues() const {
 #if AMARYL_USE_SSE
-  return CountBits(_mm_movemask_ps(_mm_castsi128_ps(mValue)));
+  return _mm_popcnt_u32(_mm_movemask_ps(_mm_castsi128_ps(mValue)));
 #elif AMARYL_SIMD_NEON
   return vaddvq_u32(vshrq_n_u32(mValue, 31));
 #else

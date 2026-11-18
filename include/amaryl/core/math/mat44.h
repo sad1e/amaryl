@@ -474,7 +474,7 @@ Mat44 Mat44::sOuterProduct(Vec3Arg inV1, Vec3Arg inV2) {
 }
 
 Mat44 Mat44::sCrossProduct(Vec3Arg inV) {
-#ifdef AMARYL_USE_SSE4_1
+#if AMARYL_USE_SSE4_1
   // Zero out the W component
   __m128 zero = _mm_setzero_ps();
   __m128 v = _mm_blend_ps(inV.mValue, zero, 0b1000);

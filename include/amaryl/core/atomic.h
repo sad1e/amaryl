@@ -16,13 +16,13 @@ struct TBasicAtomicInt {
 
   typename AtomicOperations::ValueType value;
 
-  T LoadRelaxed() const noexcept { return AtomicOperations::loadRelaxed(value); }
-  void StoreRelaxed(T new_value) noexcept {
+  T loadRelaxed() const noexcept { return AtomicOperations::loadRelaxed(value); }
+  void storeRelaxed(T new_value) noexcept {
     AtomicOperations::storeRelaxed(value, new_value);
   }
 
-  T LoadAcquire() const noexcept { return AtomicOperations::loadAcquire(value); }
-  void StoreRelease(T new_value) noexcept {
+  T loadAcquire() const noexcept { return AtomicOperations::loadAcquire(value); }
+  void storeRelease(T new_value) noexcept {
     AtomicOperations::storeRelease(value, new_value);
   }
 
@@ -32,142 +32,142 @@ struct TBasicAtomicInt {
     return new_value;
   }
 
-  static constexpr bool IsReferenceCountingNative() {
-    return AtomicOperations::IsReferenceCountingNative();
+  static constexpr bool isReferenceCountingNative() {
+    return AtomicOperations::isReferenceCountingNative();
   }
-  static constexpr bool IsReferenceCountingWaitFree() {
-    return AtomicOperations::IsReferenceCountingWaitFree();
-  }
-
-  bool Ref() noexcept { return AtomicOperations::Ref(value); }
-  bool DeRef() noexcept { return AtomicOperations::DeRef(value); }
-
-  static constexpr bool IsTestAndSetNative() noexcept {
-    return AtomicOperations::IsTestAndSetNative();
-  }
-  static constexpr bool IsTestAndSetWaitFree() noexcept {
-    return AtomicOperations::IsTestAndSetWaitFree();
+  static constexpr bool isReferenceCountingWaitFree() {
+    return AtomicOperations::isReferenceCountingWaitFree();
   }
 
-  bool TestAndSetRelaxed(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetRelaxed(value, expected_value, new_value);
+  bool ref() noexcept { return AtomicOperations::ref(value); }
+  bool deRef() noexcept { return AtomicOperations::deRef(value); }
+
+  static constexpr bool isTestAndSetNative() noexcept {
+    return AtomicOperations::isTestAndSetNative();
   }
-  bool TestAndSetAcquire(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetAcquire(value, expected_value, new_value);
-  }
-  bool TestAndSetRelease(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetRelease(value, expected_value, new_value);
-  }
-  bool TestAndSetOrdered(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetOrdered(value, expected_value, new_value);
+  static constexpr bool isTestAndSetWaitFree() noexcept {
+    return AtomicOperations::isTestAndSetWaitFree();
   }
 
-  bool TestAndSetRelaxed(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetRelaxed(value, expected_value, new_value,
+  bool testAndSetRelaxed(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetRelaxed(value, expected_value, new_value);
+  }
+  bool testAndSetAcquire(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetAcquire(value, expected_value, new_value);
+  }
+  bool testAndSetRelease(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetRelease(value, expected_value, new_value);
+  }
+  bool testAndSetOrdered(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetOrdered(value, expected_value, new_value);
+  }
+
+  bool testAndSetRelaxed(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetRelaxed(value, expected_value, new_value,
                                                &current_value);
   }
-  bool TestAndSetAcquire(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetAcquire(value, expected_value, new_value,
+  bool testAndSetAcquire(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetAcquire(value, expected_value, new_value,
                                                &current_value);
   }
-  bool TestAndSetRelease(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetRelease(value, expected_value, new_value,
+  bool testAndSetRelease(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetRelease(value, expected_value, new_value,
                                                &current_value);
   }
-  bool TestAndSetOrdered(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetOrdered(value, expected_value, new_value,
+  bool testAndSetOrdered(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetOrdered(value, expected_value, new_value,
                                                &current_value);
   }
 
-  static constexpr bool IsFetchStoreNative() noexcept {
-    return AtomicOperations::IsFetchStoreNative();
+  static constexpr bool isFetchStoreNative() noexcept {
+    return AtomicOperations::isFetchStoreNative();
   }
-  static constexpr bool IsFetchStoreWaitFree() noexcept {
-    return AtomicOperations::IsFetchStoreWaitFree();
+  static constexpr bool isFetchStoreWaitFree() noexcept {
+    return AtomicOperations::isFetchStoreWaitFree();
   }
 
-  T FetchStoreRelaxed(T new_value) noexcept {
+  T fetchStoreRelaxed(T new_value) noexcept {
     return AtomicOperations::fetchStoreRelaxed(value, new_value);
   }
-  T FetchStoreAcquire(T new_value) noexcept {
+  T fetchStoreAcquire(T new_value) noexcept {
     return AtomicOperations::fetchStoreAcquire(value, new_value);
   }
-  T FetchStoreRelease(T new_value) noexcept {
+  T fetchStoreRelease(T new_value) noexcept {
     return AtomicOperations::fetchStoreRelease(value, new_value);
   }
-  T FetchStoreOrdered(T new_value) noexcept {
+  T fetchStoreOrdered(T new_value) noexcept {
     return AtomicOperations::fetchStoreOrdered(value, new_value);
   }
 
-  static constexpr bool IsFetchAddNative() noexcept {
-    return AtomicOperations::IsFetchAddNative();
+  static constexpr bool isFetchAddNative() noexcept {
+    return AtomicOperations::isFetchAddNative();
   }
-  static constexpr bool IsFetchAddWaitFree() noexcept {
-    return AtomicOperations::IsFetchAddWaitFree();
+  static constexpr bool isFetchAddWaitFree() noexcept {
+    return AtomicOperations::isFetchAddWaitFree();
   }
 
-  T FetchAddRelaxed(T value_to_add) noexcept {
+  T fetchAddRelaxed(T value_to_add) noexcept {
     return AtomicOperations::fetchAddRelaxed(value, value_to_add);
   }
-  T FetchAddAcquire(T value_to_add) noexcept {
+  T fetchAddAcquire(T value_to_add) noexcept {
     return AtomicOperations::fetchAddAcquire(value, value_to_add);
   }
-  T FetchAddRelease(T value_to_add) noexcept {
+  T fetchAddRelease(T value_to_add) noexcept {
     return AtomicOperations::fetchAddRelease(value, value_to_add);
   }
-  T FetchAddOrdered(T value_to_add) noexcept {
+  T fetchAddOrdered(T value_to_add) noexcept {
     return AtomicOperations::fetchAddOrdered(value, value_to_add);
   }
 
-  T FetchSubRelaxed(T value_to_add) noexcept {
+  T fetchSubRelaxed(T value_to_add) noexcept {
     return AtomicOperations::fetchSubRelaxed(value, value_to_add);
   }
-  T FetchSubAcquire(T value_to_add) noexcept {
+  T fetchSubAcquire(T value_to_add) noexcept {
     return AtomicOperations::fetchSubAcquire(value, value_to_add);
   }
-  T FetchSubRelease(T value_to_add) noexcept {
+  T fetchSubRelease(T value_to_add) noexcept {
     return AtomicOperations::fetchSubRelease(value, value_to_add);
   }
-  T FetchSubOrdered(T value_to_add) noexcept {
+  T fetchSubOrdered(T value_to_add) noexcept {
     return AtomicOperations::fetchSubOrdered(value, value_to_add);
   }
 
-  T FetchAndRelaxed(T value_to_add) noexcept {
+  T fetchAndRelaxed(T value_to_add) noexcept {
     return AtomicOperations::fetchAndRelaxed(value, value_to_add);
   }
-  T FetchAndAcquire(T value_to_add) noexcept {
+  T fetchAndAcquire(T value_to_add) noexcept {
     return AtomicOperations::fetchAndAcquire(value, value_to_add);
   }
-  T FetchAndRelease(T value_to_add) noexcept {
+  T fetchAndRelease(T value_to_add) noexcept {
     return AtomicOperations::fetchAndRelease(value, value_to_add);
   }
-  T FetchAndOrdered(T value_to_add) noexcept {
+  T fetchAndOrdered(T value_to_add) noexcept {
     return AtomicOperations::fetchAndOrdered(value, value_to_add);
   }
 
-  T FetchOrRelaxed(T value_to_add) noexcept {
+  T fetchOrRelaxed(T value_to_add) noexcept {
     return AtomicOperations::fetchOrRelaxed(value, value_to_add);
   }
-  T FetchOrAcquire(T value_to_add) noexcept {
+  T fetchOrAcquire(T value_to_add) noexcept {
     return AtomicOperations::fetchOrAcquire(value, value_to_add);
   }
-  T FetchOrRelease(T value_to_add) noexcept {
+  T fetchOrRelease(T value_to_add) noexcept {
     return AtomicOperations::fetchOrRelease(value, value_to_add);
   }
-  T FetchOrOrdered(T value_to_add) noexcept {
+  T fetchOrOrdered(T value_to_add) noexcept {
     return AtomicOperations::fetchOrOrdered(value, value_to_add);
   }
 
-  T FetchXorRelaxed(T value_to_add) noexcept {
+  T fetchXorRelaxed(T value_to_add) noexcept {
     return AtomicOperations::fetchXorRelaxed(value, value_to_add);
   }
-  T FetchXorAcquire(T value_to_add) noexcept {
+  T fetchXorAcquire(T value_to_add) noexcept {
     return AtomicOperations::fetchXorAcquire(value, value_to_add);
   }
-  T FetchXorRelease(T value_to_add) noexcept {
+  T fetchXorRelease(T value_to_add) noexcept {
     return AtomicOperations::fetchXorRelease(value, value_to_add);
   }
-  T FetchXorOrdered(T value_to_add) noexcept {
+  T fetchXorOrdered(T value_to_add) noexcept {
     return AtomicOperations::fetchXorOrdered(value, value_to_add);
   }
 
@@ -199,13 +199,13 @@ struct TBasicAtomicPointer {
 
   AtomicValueType value;
 
-  T LoadRelaxed() const noexcept { return AtomicOperations::loadRelaxed(value); }
-  void StoreRelaxed(T new_value) noexcept {
+  T loadRelaxed() const noexcept { return AtomicOperations::loadRelaxed(value); }
+  void storeRelaxed(T new_value) noexcept {
     AtomicOperations::storeRelaxed(value, new_value);
   }
 
-  T LoadAcquire() const noexcept { return AtomicOperations::loadAcquire(value); }
-  void StoreRelease(T new_value) noexcept {
+  T loadAcquire() const noexcept { return AtomicOperations::loadAcquire(value); }
+  void storeRelease(T new_value) noexcept {
     AtomicOperations::storeRelease(value, new_value);
   }
 
@@ -215,93 +215,93 @@ struct TBasicAtomicPointer {
     return new_value;
   }
 
-  static constexpr bool IsTestAndSetNative() noexcept {
-    return AtomicOperations::IsTestAndSetNative();
+  static constexpr bool isTestAndSetNative() noexcept {
+    return AtomicOperations::isTestAndSetNative();
   }
-  static constexpr bool IsTestAndSetWaitFree() noexcept {
-    return AtomicOperations::IsTestAndSetWaitFree();
-  }
-
-  bool TestAndSetRelaxed(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetRelaxed(value, expected_value, new_value);
-  }
-  bool TestAndSetAcquire(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetAcquire(value, expected_value, new_value);
-  }
-  bool TestAndSetRelease(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetRelease(value, expected_value, new_value);
-  }
-  bool TestAndSetOrdered(T expected_value, T new_value) noexcept {
-    return AtomicOperations::TestAndSetOrdered(value, expected_value, new_value);
+  static constexpr bool isTestAndSetWaitFree() noexcept {
+    return AtomicOperations::isTestAndSetWaitFree();
   }
 
-  bool TestAndSetRelaxed(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetRelaxed(value, expected_value, new_value,
+  bool testAndSetRelaxed(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetRelaxed(value, expected_value, new_value);
+  }
+  bool testAndSetAcquire(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetAcquire(value, expected_value, new_value);
+  }
+  bool testAndSetRelease(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetRelease(value, expected_value, new_value);
+  }
+  bool testAndSetOrdered(T expected_value, T new_value) noexcept {
+    return AtomicOperations::testAndSetOrdered(value, expected_value, new_value);
+  }
+
+  bool testAndSetRelaxed(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetRelaxed(value, expected_value, new_value,
                                                &current_value);
   }
-  bool TestAndSetAcquire(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetAcquire(value, expected_value, new_value,
+  bool testAndSetAcquire(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetAcquire(value, expected_value, new_value,
                                                &current_value);
   }
-  bool TestAndSetRelease(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetRelease(value, expected_value, new_value,
+  bool testAndSetRelease(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetRelease(value, expected_value, new_value,
                                                &current_value);
   }
-  bool TestAndSetOrdered(T expected_value, T new_value, T& current_value) noexcept {
-    return AtomicOperations::TestAndSetOrdered(value, expected_value, new_value,
+  bool testAndSetOrdered(T expected_value, T new_value, T& current_value) noexcept {
+    return AtomicOperations::testAndSetOrdered(value, expected_value, new_value,
                                                &current_value);
   }
 
-  static constexpr bool IsFetchStoreNative() noexcept {
-    return AtomicOperations::IsFetchStoreNative();
+  static constexpr bool isFetchStoreNative() noexcept {
+    return AtomicOperations::isFetchStoreNative();
   }
-  static constexpr bool IsFetchStoreWaitFree() noexcept {
-    return AtomicOperations::IsFetchStoreWaitFree();
+  static constexpr bool isFetchStoreWaitFree() noexcept {
+    return AtomicOperations::isFetchStoreWaitFree();
   }
 
-  T FetchStoreRelaxed(T new_value) noexcept {
+  T fetchStoreRelaxed(T new_value) noexcept {
     return AtomicOperations::fetchStoreRelaxed(value, new_value);
   }
-  T FetchStoreAcquire(T new_value) noexcept {
+  T fetchStoreAcquire(T new_value) noexcept {
     return AtomicOperations::fetchStoreAcquire(value, new_value);
   }
-  T FetchStoreRelease(T new_value) noexcept {
+  T fetchStoreRelease(T new_value) noexcept {
     return AtomicOperations::fetchStoreRelease(value, new_value);
   }
-  T FetchStoreOrdered(T new_value) noexcept {
+  T fetchStoreOrdered(T new_value) noexcept {
     return AtomicOperations::fetchStoreOrdered(value, new_value);
   }
 
-  static constexpr bool IsFetchAddNative() noexcept {
-    return AtomicOperations::IsFetchAddNative();
+  static constexpr bool isFetchAddNative() noexcept {
+    return AtomicOperations::isFetchAddNative();
   }
-  static constexpr bool IsFetchAddWaitFree() noexcept {
-    return AtomicOperations::IsFetchAddWaitFree();
+  static constexpr bool isFetchAddWaitFree() noexcept {
+    return AtomicOperations::isFetchAddWaitFree();
   }
 
-  T FetchAddRelaxed(ptrdiff_t value_to_add) noexcept {
+  T fetchAddRelaxed(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchAddRelaxed(value, value_to_add);
   }
-  T FetchAddAcquire(ptrdiff_t value_to_add) noexcept {
+  T fetchAddAcquire(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchAddAcquire(value, value_to_add);
   }
-  T FetchAddRelease(ptrdiff_t value_to_add) noexcept {
+  T fetchAddRelease(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchAddRelease(value, value_to_add);
   }
-  T FetchAddOrdered(ptrdiff_t value_to_add) noexcept {
+  T fetchAddOrdered(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchAddOrdered(value, value_to_add);
   }
 
-  T FetchSubRelaxed(ptrdiff_t value_to_add) noexcept {
+  T fetchSubRelaxed(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchSubRelaxed(value, value_to_add);
   }
-  T FetchSubAcquire(ptrdiff_t value_to_add) noexcept {
+  T fetchSubAcquire(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchSubAcquire(value, value_to_add);
   }
-  T FetchSubRelease(ptrdiff_t value_to_add) noexcept {
+  T fetchSubRelease(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchSubRelease(value, value_to_add);
   }
-  T FetchSubOrdered(ptrdiff_t value_to_add) noexcept {
+  T fetchSubOrdered(ptrdiff_t value_to_add) noexcept {
     return AtomicOperations::fetchSubOrdered(value, value_to_add);
   }
 
