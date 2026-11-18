@@ -35,3 +35,6 @@ add_subdirectory(${AMARYL_3RDPARTY_ROOT}/pystring)
 
 # cgltf
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/cgltf)
+
+# meshoptimizer
+add_subdirectory(${AMARYL_3RDPARTY_ROOT}/meshoptimizer)
