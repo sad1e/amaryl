@@ -32,3 +32,6 @@ endif()
 
 # pystring
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/pystring)
+
+# cgltf
+add_subdirectory(${AMARYL_3RDPARTY_ROOT}/cgltf)
