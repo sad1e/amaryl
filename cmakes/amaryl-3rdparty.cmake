@@ -8,6 +8,23 @@ set(MI_BUILD_STATIC OFF)
 set(MI_BUILD_SHARED ON)
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/mimalloc)
 
+function(amaryl_inject_mimalloc target)
+  if(NOT WIN32)
+    return()
+  endif()
+  set(_minject "${AMARYL_3RDPARTY_ROOT}/mimalloc/bin/minject.exe")
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(_postfix "--postfix=debug") # debug: inject mimalloc-debug.dll
+  else()
+    set(_postfix "") # release: inject mimalloc.dll
+  endif()
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND "${_minject}" --force --inplace ${_postfix} "$<TARGET_FILE:${target}>"
+    COMMENT "Inject mimalloc as first import of ${target} (mimalloc-redirect)"
+    VERBATIM)
+endfunction()
+
+
 # nanobench
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/nanobench)
 

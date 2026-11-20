@@ -27,3 +27,4 @@ target_link_libraries(${TARGET_EDITOR}
 target_compile_definitions(${TARGET_EDITOR}
   PUBLIC
   SDL_MAIN_USE_CALLBACKS)
+amaryl_inject_mimalloc(${TARGET_EDITOR})
