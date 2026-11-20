@@ -8,6 +8,7 @@
 #include "amaryl/engine/render/render_scene.h"
 #include "amaryl/engine/scene/model.h"
 #include "amaryl/engine/scene/scene_graph.h"
+#include "amaryl/engine/scene/scene_loader.h"
 #include "boost/ut.hpp"
 
 using namespace amaryl;
@@ -175,26 +176,19 @@ int main() {
     expect(w.graph.getCount() == 0u && w.meshes.getRefCount(mesh) == 0u);
   };
 
-  "models are registered, instantiated and released"_test = [] {
+  "models are registered and released"_test = [] {
     World w;
-    GltfImportResult imported;
-    imported.materials.resize(2);
-    imported.materials[0].name = "m0";
-    imported.materials[1].name = "m1";
+    ModelAsset asset;
+    asset.materials.resize(2);
+    asset.materials[0].name = "m0";
+    asset.materials[1].name = "m1";
     auto malformed = std::make_shared<MeshAsset>(*makeQuads(1));
     malformed->indices[0] = malformed->getVertexCount();
     // Mesh 1 failed to import, mesh 2 is rejected by the registry.
-    imported.meshes = {{makeQuads(2), {0, -1}}, {}, {malformed, {1}}};
-    imported.nodes = {
-        {.name = "a", .parent = -1, .position = Vec3(1, 0, 0), .mesh = 0},
-        {.name = "b", .parent = 0, .position = Vec3(0, 2, 0)},
-        {.name = "c", .parent = 1, .position = Vec3(0, 0, 3), .mesh = 0},
-        {.name = "d", .parent = -1, .mesh = 2},
-    };
+    asset.meshes = {{makeQuads(2), {0, -1}}, {}, {malformed, {1}}};
 
-    Model model = registerModel(imported, w.meshes, w.materials);
+    Model model = registerModel(asset, w.meshes, w.materials);
     expect(model.materials.size() == 2u && model.meshes.size() == 3u) << fatal;
-    expect(model.nodes.size() == 4u && model.nodes[2].name == "c");
     expect(w.materials.get(model.materials[1]).name == "m1");
     expect(w.meshes.isAlive(model.meshes[0]) && !model.meshes[1] && !model.meshes[2]);
     expect(w.meshes.getDefaultMaterial(model.meshes[0], 0) == model.materials[0]);
@@ -202,73 +196,175 @@ int main() {
     expect(w.materials.getRefCount(model.materials[0]) == 1u);
     expect(w.materials.getRefCount(model.materials[1]) == 0u);
 
-    const EntityHandle root = instantiateModel(
-        model, w.entities,
-        {.position = Vec3(0, 0, 10), .mobility = ETransformMobility::Static});
-    expect(root.valid()) << fatal;
-    expect(w.entities.getCount() == 5u && w.scene.getCount() == 2u);
-    expect(w.graph.getCount() == 5u);
+    releaseModel(model, w.meshes, w.materials);
+    expect(model.meshes.empty() && model.materials.empty());
+    expect(w.meshes.getCount() == 0u && w.materials.getCount() == 1u);
+    expect(w.materials.getRefCount(w.materials.getDefault()) == 0u);
+  };
 
-    // The glTF roots are parented to the root entity.
-    const TransformHandle root_transform = w.entities.getTransform(root);
-    const std::vector<TransformHandle> roots = getChildren(w.graph, root_transform);
-    expect(roots.size() == 2u) << fatal;
-    const TransformHandle a = w.graph.getFirstChild(roots[0]) ? roots[0] : roots[1];
-    const TransformHandle d = a == roots[0] ? roots[1] : roots[0];
-    const TransformHandle b = w.graph.getFirstChild(a);
-    expect(b.valid()) << fatal;
-    const TransformHandle c = w.graph.getFirstChild(b);
-    expect(c.valid()) << fatal;
-    expect(!w.graph.getFirstChild(c) && !w.graph.getFirstChild(d));
-    expect(!w.graph.getNextSibling(b) && !w.graph.getNextSibling(c));
+  "scene nodes are added into the existing graph"_test = [] {
+    World w;
+    ModelAsset asset;
+    asset.materials.resize(1);
+    asset.meshes = {{makeQuads(1), {0}}, {}};
+    Model model = registerModel(asset, w.meshes, w.materials);
+
+    SceneAsset scene;
+    scene.nodes = {
+        {.name = "a", .parent = -1, .position = Vec3(1, 0, 0), .mesh = 0},
+        {.name = "b", .parent = 0, .position = Vec3(0, 2, 0), .mesh = 1},
+        {.name = "c", .parent = 1, .position = Vec3(0, 0, 3), .mesh = 0},
+        {.name = "cam", .parent = -1, .position = Vec3(0, 0, 5), .camera = 0},
+        {.name = "sun", .parent = -1, .light = 0},
+        {.name = "lamp", .parent = 3, .light = 1},
+    };
+    scene.cameras.push_back({.name = "persp", .fovY = 0.8f, .aspect = 2.0f});
+    scene.lights.push_back({.name = "sun", .color = Vec3(1, 0, 0), .intensity = 5.0f});
+    scene.lights.push_back({.name = "lamp", .type = ELightType::Point});
+
+    // Existing hierarchy, the nodes go directly under `parent` without wrapper root.
+    const EntityHandle anchor =
+        w.entities.create({.transform = {.position = Vec3(0, 0, 10),
+                                         .mobility = ETransformMobility::Static}});
+    const EntityHandle sibling =
+        w.entities.create({.transform = {.parent = w.entities.getTransform(anchor),
+                                         .mobility = ETransformMobility::Static}});
+    expect(anchor.valid() && sibling.valid()) << fatal;
+    const TransformHandle anchor_transform = w.entities.getTransform(anchor);
+
+    std::vector<EntityHandle> nodes;
+    expect(addSceneNodes(
+        scene, model, w.entities,
+        {.parent = anchor_transform, .mobility = ETransformMobility::Static}, nodes))
+        << fatal;
+    expect(nodes.size() == scene.nodes.size()) << fatal;
+    expect(w.entities.getCount() == 8u && w.graph.getCount() == 8u);
+    expect(w.scene.getCount() == 2u && w.entities.isAlive(sibling));
+
+    std::vector<TransformHandle> t;
+    for (const EntityHandle node : nodes) {
+      expect(w.entities.isAlive(node));
+      t.push_back(w.entities.getTransform(node));
+      expect(w.graph.getMobility(t.back()) == ETransformMobility::Static);
+    }
+    expect(getChildren(w.graph, anchor_transform).size() == 4u);
+    expect(w.graph.getParent(t[0]) == anchor_transform);
+    expect(w.graph.getParent(t[1]) == t[0] && w.graph.getParent(t[2]) == t[1]);
+    expect(w.graph.getParent(t[3]) == anchor_transform);
+    expect(w.graph.getParent(t[4]) == anchor_transform &&
+           w.graph.getParent(t[5]) == t[3]);
 
     w.graph.update();
-    expect(w.isWorldAt(root_transform, Vec3(0, 0, 10)) && w.isWorldAt(a, Vec3(1, 0, 10)));
-    expect(w.isWorldAt(b, Vec3(1, 2, 10)) && w.isWorldAt(c, Vec3(1, 2, 13)));
-    expect(w.isWorldAt(d, Vec3(0, 0, 10)));
-    for (const TransformHandle transform : {root_transform, a, b, c, d}) {
-      expect(w.entities.findByTransform(transform).valid());
-      expect(w.graph.getMobility(transform) == ETransformMobility::Static);
-    }
-    expect(!w.getProxy(root_transform) && !w.getProxy(b) && !w.getProxy(d));
-    expect(w.scene.getMesh(w.getProxy(a)) == model.meshes[0]);
-    expect(w.scene.getMesh(w.getProxy(c)) == model.meshes[0]);
-    expect(w.scene.getMaterial(w.getProxy(c), 0) == model.materials[0]);
-    expect(w.meshes.getRefCount(model.meshes[0]) == 2u);
+    w.entities.updateComponents();
+    expect(w.isWorldAt(t[0], Vec3(1, 0, 10)) && w.isWorldAt(t[2], Vec3(1, 2, 13)));
+    expect(w.scene.getMesh(w.entities.getRenderProxy(nodes[0])) == model.meshes[0]);
+    expect(!w.entities.getRenderProxy(nodes[1]));
+    expect(w.scene.getMesh(w.entities.getRenderProxy(nodes[2])) == model.meshes[0]);
 
-    const EntityHandle movable = instantiateModel(model, w.entities);
-    expect(movable.valid()) << fatal;
-    const TransformHandle movable_transform = w.entities.getTransform(movable);
-    expect(w.entities.getCount() == 10u && w.scene.getCount() == 4u);
-    expect(w.graph.getMobility(movable_transform) == ETransformMobility::Movable);
-    expect(w.graph.getMobility(w.graph.getFirstChild(movable_transform)) ==
-           ETransformMobility::Movable);
+    const Camera* camera = w.entities.getCamera(nodes[3]);
+    expect(camera != nullptr) << fatal;
+    expect(camera->getProjectionType() == ECameraProjection::Perspective);
+    expect(camera->getFovY() == 0.8f && camera->getAspect() == 2.0f);
+    expect(camera->getPosition().IsClose(Vec3(0, 0, 15), 1e-10f));
+    const Light* sun = w.entities.getLight(nodes[4]);
+    expect(sun != nullptr) << fatal;
+    expect(sun->getType() == ELightType::Directional);
+    expect(sun->getColor() == Vec3(1, 0, 0) && sun->getIntensity() == 5.0f);
+    // Unsupported lights only keep their transform.
+    expect(!w.entities.getLight(nodes[5]) && !w.entities.getCamera(nodes[4]));
 
-    // A failed instantiation destroys the entities it created.
+    // Static nodes cannot go under a movable parent, nothing is added.
+    const EntityHandle movable = w.entities.create({});
+    expect(!addSceneNodes(scene, model, w.entities,
+                          {.parent = w.entities.getTransform(movable),
+                           .mobility = ETransformMobility::Static},
+                          nodes));
+    expect(nodes.empty() && w.entities.getCount() == 9u && w.graph.getCount() == 9u);
+
+    // A failure after some nodes were added destroys them.
     const MeshHandle stale = w.meshes.create(makeQuads(1));
     w.meshes.destroy(stale);
     Model broken = model;
     broken.meshes.push_back(stale);
-    broken.nodes[2].mesh = 3;
-    const uint32 transform_count = w.graph.getCount();
-    expect(!instantiateModel(broken, w.entities));
-    const TransformHandle dead_parent = w.graph.create();
-    w.graph.destroy(dead_parent);
-    expect(!instantiateModel(model, w.entities, {.parent = dead_parent}));
-    expect(w.entities.getCount() == 10u && w.scene.getCount() == 4u);
-    expect(w.graph.getCount() == transform_count);
-    expect(w.meshes.getRefCount(model.meshes[0]) == 4u);
+    SceneAsset broken_scene = scene;
+    broken_scene.nodes[5].mesh = 2;
+    expect(!addSceneNodes(broken_scene, broken, w.entities, {}, nodes));
+    // Out of range indices are rejected before adding anything.
+    broken_scene.nodes[5].mesh = 3;
+    expect(!addSceneNodes(broken_scene, broken, w.entities, {}, nodes));
+    broken_scene.nodes[5] = {.parent = 5};
+    expect(!addSceneNodes(broken_scene, model, w.entities, {}, nodes));
+    expect(nodes.empty() && w.entities.getCount() == 9u && w.graph.getCount() == 9u);
+    expect(w.scene.getCount() == 2u && w.meshes.getRefCount(model.meshes[0]) == 2u);
 
-    w.entities.destroy(root);
-    expect(!w.entities.isAlive(root) && w.entities.getCount() == 5u);
-    expect(w.scene.getCount() == 2u && w.graph.getCount() == 5u);
+    // Movable by default, the scene roots become graph roots.
+    expect(addSceneNodes(scene, model, w.entities, {}, nodes)) << fatal;
+    expect(!w.graph.getParent(w.entities.getTransform(nodes[0])));
+    expect(w.graph.getMobility(w.entities.getTransform(nodes[0])) ==
+           ETransformMobility::Movable);
+    expect(w.entities.getCount() == 15u && w.scene.getCount() == 4u);
+
+    w.entities.destroy(anchor);
+    expect(w.entities.getCount() == 7u && w.scene.getCount() == 2u);
+    for (size_t i = 0; i < nodes.size(); ++i) {
+      if (scene.nodes[i].parent < 0) {
+        w.entities.destroy(nodes[i]);
+      }
+    }
     w.entities.destroy(movable);
     expect(w.entities.getCount() == 0u && w.scene.getCount() == 0u);
-
+    expect(w.graph.getCount() == 0u);
     releaseModel(model, w.meshes, w.materials);
-    expect(model.meshes.empty() && model.materials.empty() && model.nodes.empty());
-    expect(w.meshes.getCount() == 0u && w.materials.getCount() == 1u);
-    expect(w.materials.getRefCount(w.materials.getDefault()) == 0u);
+  };
+
+  "cameras and lights follow their entity"_test = [] {
+    World w;
+    const EntityHandle parent = w.entities.create(
+        {.transform = {.position = Vec3(0, 0, 4), .scale = Vec3(2, 2, 2)}});
+    const EntityHandle child =
+        w.entities.create({.transform = {.parent = w.entities.getTransform(parent),
+                                         .position = Vec3(1, 0, 0)}});
+    expect(parent.valid() && child.valid()) << fatal;
+    expect(!w.entities.getCamera(child) && !w.entities.getLight(child));
+
+    // The world transform is set when attached, without scale.
+    Camera* camera = w.entities.setCamera(child, std::make_unique<Camera>());
+    expect(camera != nullptr && w.entities.getCamera(child) == camera) << fatal;
+    expect(camera->getPosition().IsClose(Vec3(2, 0, 4), 1e-10f));
+    expect(camera->getRight().IsClose(Vec3(1, 0, 0), 1e-10f));
+    Light* light = w.entities.setLight(child, std::make_unique<DirectionalLight>());
+    expect(light != nullptr && w.entities.getLight(child) == light) << fatal;
+    expect(light->getDirection().IsClose(Vec3(0, 0, -1), 1e-10f));
+
+    // Updated after the graph.
+    const TransformHandle parent_transform = w.entities.getTransform(parent);
+    w.graph.setLocalRotation(parent_transform,
+                             Quat::sRotation(Vec3::sAxisY(), 0.5f * PI));
+    w.graph.update();
+    w.entities.updateComponents();
+    expect(camera->getPosition().IsClose(Vec3(0, 0, 2), 1e-10f));
+    expect(camera->getForward().IsClose(Vec3(-1, 0, 0), 1e-10f));
+    expect(light->getDirection().IsClose(Vec3(-1, 0, 0), 1e-10f));
+
+    // Null detaches, destroying the entity releases its components.
+    expect(w.entities.setCamera(child, nullptr) == nullptr);
+    expect(!w.entities.getCamera(child) && w.entities.getLight(child) == light);
+    w.entities.destroy(parent);
+    const EntityHandle reused = w.entities.create({});
+    expect(reused.index() == child.index() || reused.index() == parent.index());
+    expect(!w.entities.getCamera(reused) && !w.entities.getLight(reused));
+    w.entities.updateComponents();
+    w.entities.destroy(reused);
+  };
+
+  "static entities cannot have a movable parent"_test = [] {
+    World w;
+    const EntityHandle movable = w.entities.create({});
+    expect(movable.valid()) << fatal;
+    expect(!w.entities.create({.transform = {.parent = w.entities.getTransform(movable),
+                                             .mobility = ETransformMobility::Static}}));
+    expect(w.entities.getCount() == 1u && w.graph.getCount() == 1u);
+    w.entities.destroy(movable);
   };
 
   return 0;

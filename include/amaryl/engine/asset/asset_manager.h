@@ -5,8 +5,6 @@
 
 namespace amaryl {
 
-constexpr uint32 kMaxAssetDebugName = 256;
-
 /**
  * Asset is the resource in project, it include runtime resource and editor resource. The
  * asset will strip all editor resource and be packed into pak files for running.

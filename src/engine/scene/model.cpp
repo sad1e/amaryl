@@ -5,17 +5,17 @@
 
 namespace amaryl {
 
-Model registerModel(const GltfImportResult& imported, MeshRegistry& meshes,
+Model registerModel(const ModelAsset& asset, MeshRegistry& meshes,
                     MaterialRegistry& materials) {
   Model model;
-  model.materials.reserve(imported.materials.size());
-  for (const MaterialAsset& material : imported.materials) {
+  model.materials.reserve(asset.materials.size());
+  for (const MaterialAsset& material : asset.materials) {
     model.materials.push_back(materials.create(material));
   }
 
-  model.meshes.reserve(imported.meshes.size());
+  model.meshes.reserve(asset.meshes.size());
   std::vector<MaterialHandle> section_materials;
-  for (const GltfMesh& mesh : imported.meshes) {
+  for (const ModelMesh& mesh : asset.meshes) {
     MeshHandle handle{};
     if (mesh.asset) {
       section_materials.assign(mesh.sectionMaterials.size(), MaterialHandle{});
@@ -29,8 +29,6 @@ Model registerModel(const GltfImportResult& imported, MeshRegistry& meshes,
     }
     model.meshes.push_back(handle);
   }
-
-  model.nodes = imported.nodes;
   return model;
 }
 
@@ -45,38 +43,6 @@ void releaseModel(Model& model, MeshRegistry& meshes, MaterialRegistry& material
     materials.destroy(material);
   }
   model = {};
-}
-
-EntityHandle instantiateModel(const Model& model, EntityManager& entities,
-                              const TransformDesc& root) {
-  const EntityHandle root_entity = entities.create({root});
-  if (!root_entity) {
-    return {};
-  }
-
-  // Parents come first, their transforms are known when the children are created.
-  std::vector<TransformHandle> transforms(model.nodes.size());
-  for (size_t i = 0; i < model.nodes.size(); ++i) {
-    const GltfNode& node = model.nodes[i];
-    EntityDesc desc;
-    desc.transform.parent =
-        node.parent >= 0 ? transforms[node.parent] : entities.getTransform(root_entity);
-    desc.transform.position = node.position;
-    desc.transform.rotation = node.rotation;
-    desc.transform.scale = node.scale;
-    desc.transform.mobility = root.mobility;
-    if (node.mesh >= 0) {
-      desc.mesh = model.meshes[node.mesh];
-    }
-
-    const EntityHandle entity = entities.create(desc);
-    if (!entity) {
-      entities.destroy(root_entity);
-      return {};
-    }
-    transforms[i] = entities.getTransform(entity);
-  }
-  return root_entity;
 }
 
 }  // namespace amaryl

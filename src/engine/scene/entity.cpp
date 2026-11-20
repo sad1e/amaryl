@@ -15,6 +15,11 @@ EntityHandle EntityManager::create(const EntityDesc& desc) {
     ALOGE("EntityManager: invalid parent transform");
     return {};
   }
+  if (desc.transform.parent && desc.transform.mobility == ETransformMobility::Static &&
+      graph_.getMobility(desc.transform.parent) == ETransformMobility::Movable) {
+    ALOGE("EntityManager: a static entity cannot have a movable parent");
+    return {};
+  }
 
   const TransformHandle transform = graph_.create(desc.transform);
   RenderProxyHandle proxy{};
@@ -31,6 +36,9 @@ EntityHandle EntityManager::create(const EntityDesc& desc) {
     by_transform_.resize(transform.index() + 1, kInvalidIndex);
   }
   by_transform_[transform.index()] = handle.index();
+  if (handle.index() >= components_.size()) {
+    components_.resize(handle.index() + 1);
+  }
   return handle;
 }
 
@@ -86,6 +94,57 @@ EntityHandle EntityManager::findByTransform(TransformHandle transform) const {
   return pool_.get(handle)->transform == transform ? handle : EntityHandle{};
 }
 
+Camera* EntityManager::setCamera(EntityHandle handle, std::unique_ptr<Camera> camera) {
+  const TransformHandle transform = getRecord(handle).transform;
+  std::unique_ptr<Camera>& slot = getComponents(handle).camera;
+  slot = std::move(camera);
+  if (slot && graph_.isAlive(transform)) {
+    slot->setWorldTransform(graph_.computeWorldImmediate(transform));
+  }
+  return slot.get();
+}
+
+Camera* EntityManager::getCamera(EntityHandle handle) const {
+  ASSERT(isRecordAlive(handle), "Invalid entity handle");
+  return components_[handle.index()].camera.get();
+}
+
+Light* EntityManager::setLight(EntityHandle handle, std::unique_ptr<Light> light) {
+  const TransformHandle transform = getRecord(handle).transform;
+  std::unique_ptr<Light>& slot = getComponents(handle).light;
+  slot = std::move(light);
+  if (slot && graph_.isAlive(transform)) {
+    slot->setWorldTransform(graph_.computeWorldImmediate(transform));
+  }
+  return slot.get();
+}
+
+Light* EntityManager::getLight(EntityHandle handle) const {
+  ASSERT(isRecordAlive(handle), "Invalid entity handle");
+  return components_[handle.index()].light.get();
+}
+
+void EntityManager::updateComponents() {
+  for (uint32 slot = 0; slot < components_.size(); ++slot) {
+    Components& components = components_[slot];
+    if (!components.camera && !components.light) {
+      continue;
+    }
+    // Components are reset on release, their slot is alive.
+    const TransformHandle transform = pool_.get(pool_.getHandle(slot))->transform;
+    if (!graph_.isAlive(transform)) {
+      continue;
+    }
+    const Mat44& world = graph_.getWorld(transform);
+    if (components.camera) {
+      components.camera->setWorldTransform(world);
+    }
+    if (components.light) {
+      components.light->setWorldTransform(world);
+    }
+  }
+}
+
 bool EntityManager::isRecordAlive(EntityHandle handle) const {
   return handle.index() < pool_.getSizeOfObjects() &&
          pool_.getHandle(handle.index()) == handle;
@@ -96,11 +155,17 @@ const EntityManager::Record& EntityManager::getRecord(EntityHandle handle) const
   return *pool_.get(handle);
 }
 
+EntityManager::Components& EntityManager::getComponents(EntityHandle handle) {
+  ASSERT(isRecordAlive(handle), "Invalid entity handle");
+  return components_[handle.index()];
+}
+
 void EntityManager::release(EntityHandle handle) {
   const Record record = getRecord(handle);
   if (record.proxy) {
     render_scene_.destroy(record.proxy);
   }
+  components_[handle.index()] = {};
   uint32& slot = by_transform_[record.transform.index()];
   if (slot == handle.index()) {
     slot = kInvalidIndex;

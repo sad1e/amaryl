@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "amaryl/core/span.h"
-#include "amaryl/engine/engine.h"
+#include "amaryl/engine/common.h"
 #include "amaryl/engine/render/gpu_scene.shared.h"
 
 namespace amaryl {

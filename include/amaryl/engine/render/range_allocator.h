@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "amaryl/engine/engine.h"
+#include "amaryl/engine/common.h"
 
 namespace amaryl {
 

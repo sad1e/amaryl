@@ -1,13 +1,10 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 #include <string>
-#include <vector>
 
 #include "amaryl/core/span.h"
-#include "amaryl/engine/asset/material_asset.h"
-#include "amaryl/engine/asset/mesh_asset.h"
+#include "amaryl/engine/asset/scene_asset.h"
 
 namespace amaryl {
 
@@ -41,31 +38,17 @@ struct GltfImportOptions {
   // Called once per sampler used by the materials, textures without sampler use the
   // default GltfSamplerDesc. Every sampler is 0 without callback.
   std::function<SamplerDescriptorIndex(const GltfSamplerDesc&)> createSampler;
-};
-
-struct GltfMesh {
-  // Null when the mesh has no supported primitive.
-  std::shared_ptr<const MeshAsset> asset;
-  // Per section, index in `GltfImportResult::materials` or -1 for the default material.
-  std::vector<int32> sectionMaterials;
-};
-
-struct GltfNode {
-  std::string name;
-  // Index in `GltfImportResult::nodes`, lower than the index of the node, -1 for roots.
-  int32 parent = -1;
-  Vec3 position = Vec3::sZero();
-  Quat rotation = Quat::sIdentity();
-  Vec3 scale = Vec3::sOne();
-  // Index in `GltfImportResult::meshes`, -1 without mesh or when the mesh failed.
-  int32 mesh = -1;
+  // When disabled, the camera nodes are skipped with their whole subtree.
+  bool importCameras = true;
+  // KHR_lights_punctual. When disabled, the light nodes are skipped with their whole
+  // subtree.
+  bool importLights = true;
 };
 
 struct GltfImportResult {
-  std::vector<GltfMesh> meshes;
-  std::vector<MaterialAsset> materials;
-  // Nodes of the default scene, parents before children.
-  std::vector<GltfNode> nodes;
+  ModelAsset model;
+  // Nodes of the default scene, the meshes index `model.meshes`.
+  SceneAsset scene;
 };
 
 // Imports the static meshes, the materials and the node hierarchy of a .gltf or .glb
@@ -78,5 +61,11 @@ ENGINE_API bool importGltf(const char* path, const GltfImportOptions& options,
 ENGINE_API bool importGltfFromMemory(Span<const uint8> data, const char* path,
                                      const GltfImportOptions& options,
                                      GltfImportResult& out);
+
+// Imports the meshes and materials as standalone assets for the editor, the scene
+// structure is dropped and every mesh node becomes an asset.
+// TODO: not implemented yet, always returns false.
+ENGINE_API bool importGltfAssets(const char* path, const GltfImportOptions& options,
+                                 ModelAsset& out);
 
 }  // namespace amaryl

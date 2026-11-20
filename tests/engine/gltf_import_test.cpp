@@ -45,13 +45,14 @@ std::string encodeBase64(const std::vector<uint8>& bytes) {
 }
 
 // mesh 0: indexed quad, unindexed triangle and points, mesh 1: points only.
-// The orphan node is not in the scene.
+// The orphan node and the unused camera are not in the scene.
 std::string makeGltf() {
   std::string json = R"json({
   "asset": {"version": "2.0"},
-  "extensionsUsed": ["KHR_materials_unlit", "KHR_materials_emissive_strength"],
+  "extensionsUsed": ["KHR_materials_unlit", "KHR_materials_emissive_strength",
+                     "KHR_lights_punctual"],
   "scene": 0,
-  "scenes": [{"nodes": [0]}],
+  "scenes": [{"nodes": [0, 5, 7, 8, 9]}],
   "nodes": [
     {"name": "root", "translation": [1, 2, 3], "children": [1, 2]},
     {"name": "child_matrix", "mesh": 0,
@@ -59,8 +60,27 @@ std::string makeGltf() {
     {"name": "child_trs", "mesh": 1, "rotation": [0, 0, 2, 0], "scale": [1, 1, 3],
      "children": [3]},
     {"name": "leaf", "mesh": 0},
-    {"name": "orphan", "mesh": 0}
+    {"name": "orphan", "mesh": 0},
+    {"name": "cam_rig", "camera": 0, "translation": [0, 0, 10], "children": [6]},
+    {"name": "cam_child", "mesh": 0},
+    {"name": "sun", "rotation": [-0.7071068, 0, 0, 0.7071068],
+     "extensions": {"KHR_lights_punctual": {"light": 0}}},
+    {"name": "ortho", "camera": 1},
+    {"name": "lamp", "extensions": {"KHR_lights_punctual": {"light": 1}}}
   ],
+  "cameras": [
+    {"name": "persp", "type": "perspective",
+     "perspective": {"yfov": 0.8, "znear": 0.05, "aspectRatio": 1.5}},
+    {"type": "orthographic",
+     "orthographic": {"xmag": 4, "ymag": 2, "znear": 0, "zfar": 50}},
+    {"name": "unused", "type": "perspective",
+     "perspective": {"yfov": 1, "znear": 1, "zfar": 10}}
+  ],
+  "extensions": {"KHR_lights_punctual": {"lights": [
+    {"name": "sun_light", "type": "directional", "color": [1, 0.5, 0.25],
+     "intensity": 3},
+    {"type": "point", "range": 20}
+  ]}},
   "meshes": [
     {"name": "quad", "primitives": [
       {"attributes": {"POSITION": 0, "NORMAL": 1, "TEXCOORD_0": 2}, "indices": 3,
@@ -178,8 +198,9 @@ int main() {
     expect(isSampler(samplers[0], 9729, 9987, 33071, 33648));
     expect(isSampler(samplers[1], 0, 0, 10497, 10497));
 
-    expect(result.materials.size() == 2u) << fatal;
-    const MaterialAsset& painted = result.materials[0];
+    const ModelAsset& model = result.model;
+    expect(model.materials.size() == 2u) << fatal;
+    const MaterialAsset& painted = model.materials[0];
     expect(painted.name == "painted" && painted.shadingModel == EShadingModel::Lit);
     expect(painted.alphaMode == EAlphaMode::Mask && painted.doubleSided);
     expect(isNear(painted.alphaCutoff, 0.3f));
@@ -194,7 +215,7 @@ int main() {
     expect(painted.emissiveTexture.value == 10u);
     expect(painted.sampler.value == 20u);
 
-    const MaterialAsset& unlit = result.materials[1];
+    const MaterialAsset& unlit = model.materials[1];
     expect(unlit.name == "unlit_blend" && unlit.shadingModel == EShadingModel::Unlit);
     expect(unlit.alphaMode == EAlphaMode::Blend && !unlit.doubleSided);
     expect(isNear(unlit.alphaCutoff, 0.5f));
@@ -205,8 +226,8 @@ int main() {
     expect(unlit.sampler.value == 21u);
 
     // Points are skipped, a mesh without triangles fails.
-    expect(result.meshes.size() == 2u) << fatal;
-    const GltfMesh& quad = result.meshes[0];
+    expect(model.meshes.size() == 2u) << fatal;
+    const ModelMesh& quad = model.meshes[0];
     expect(quad.sectionMaterials == std::vector<int32>{0, -1});
     expect(quad.asset != nullptr) << fatal;
     expect(quad.asset->name == "quad" && quad.asset->sectionCount == 2u);
@@ -214,15 +235,16 @@ int main() {
     const uint32 first_section = quad.asset->lods[0].sectionOffset;
     expect(quad.asset->sections[first_section].indexCount == 6u);
     expect(quad.asset->sections[first_section + 1].indexCount == 3u);
-    expect(result.meshes[1].asset == nullptr &&
-           result.meshes[1].sectionMaterials.empty());
+    expect(model.meshes[1].asset == nullptr && model.meshes[1].sectionMaterials.empty());
 
-    expect(result.nodes.size() == 4u) << fatal;
-    const GltfNode& root = result.nodes[0];
-    const GltfNode& child_matrix = result.nodes[1];
-    const GltfNode& child_trs = result.nodes[2];
-    const GltfNode& leaf = result.nodes[3];
+    const SceneAsset& scene = result.scene;
+    expect(scene.nodes.size() == 9u) << fatal;
+    const SceneNodeAsset& root = scene.nodes[0];
+    const SceneNodeAsset& child_matrix = scene.nodes[1];
+    const SceneNodeAsset& child_trs = scene.nodes[2];
+    const SceneNodeAsset& leaf = scene.nodes[3];
     expect(root.name == "root" && root.parent == -1 && root.mesh == -1);
+    expect(root.camera == -1 && root.light == -1);
     expect(root.position.IsClose(Vec3(1, 2, 3)) && root.scale.IsClose(Vec3::sOne()));
     expect(root.rotation.IsClose(Quat::sIdentity()));
 
@@ -241,27 +263,94 @@ int main() {
     expect((child_trs.rotation * Vec3(0, 1, 0)).IsClose(Vec3(0, -1, 0), 1e-10f));
 
     expect(leaf.name == "leaf" && leaf.parent == 2 && leaf.mesh == 0);
+
+    // Camera and light nodes, only the used cameras and lights are imported.
+    const SceneNodeAsset& cam_rig = scene.nodes[4];
+    const SceneNodeAsset& cam_child = scene.nodes[5];
+    const SceneNodeAsset& sun = scene.nodes[6];
+    const SceneNodeAsset& ortho = scene.nodes[7];
+    const SceneNodeAsset& lamp = scene.nodes[8];
+    expect(cam_rig.name == "cam_rig" && cam_rig.parent == -1 && cam_rig.camera == 0);
+    expect(cam_rig.position.IsClose(Vec3(0, 0, 10)) && cam_rig.mesh == -1);
+    expect(cam_child.name == "cam_child" && cam_child.parent == 4 && cam_child.mesh == 0);
+    expect(sun.name == "sun" && sun.parent == -1 && sun.light == 0 && sun.camera == -1);
+    expect((sun.rotation * Vec3(0, 0, -1)).IsClose(Vec3(0, -1, 0), 1e-8f));
+    expect(ortho.name == "ortho" && ortho.camera == 1);
+    expect(lamp.name == "lamp" && lamp.light == 1);
+
+    expect(scene.cameras.size() == 2u) << fatal;
+    const CameraAsset& persp = scene.cameras[0];
+    expect(persp.name == "persp" && persp.projection == ECameraProjection::Perspective);
+    expect(isNear(persp.fovY, 0.8f) && isNear(persp.aspect, 1.5f));
+    expect(isNear(persp.nearZ, 0.05f) && std::isinf(persp.farZ));
+    const CameraAsset& ortho_camera = scene.cameras[1];
+    expect(ortho_camera.name == "camera_1");
+    expect(ortho_camera.projection == ECameraProjection::Orthographic);
+    expect(isNear(ortho_camera.orthoHalfHeight, 2.0f) &&
+           isNear(ortho_camera.aspect, 2.0f));
+    expect(isNear(ortho_camera.nearZ, 0.0f) && isNear(ortho_camera.farZ, 50.0f));
+
+    expect(scene.lights.size() == 2u) << fatal;
+    const LightAsset& sun_light = scene.lights[0];
+    expect(sun_light.name == "sun_light" && sun_light.type == ELightType::Directional);
+    expect(sun_light.color.IsClose(Vec3(1, 0.5f, 0.25f)) &&
+           isNear(sun_light.intensity, 3));
+    expect(std::isinf(sun_light.range));
+    const LightAsset& point = scene.lights[1];
+    expect(point.name == "light_1" && point.type == ELightType::Point);
+    expect(isNear(point.intensity, 1.0f) && isNear(point.range, 20.0f));
+  };
+
+  "gltf import skips camera and light subtrees when disabled"_test = [] {
+    const auto names = [](const SceneAsset& scene) {
+      std::vector<std::string> out;
+      for (const SceneNodeAsset& node : scene.nodes) {
+        out.push_back(node.name);
+      }
+      return out;
+    };
+
+    GltfImportOptions options;
+    options.importCameras = false;
+    GltfImportResult result;
+    expect(importJson(makeGltf(), options, result)) << fatal;
+    expect(result.scene.cameras.empty() && result.scene.lights.size() == 2u);
+    expect(names(result.scene) == std::vector<std::string>{"root", "child_matrix",
+                                                           "child_trs", "leaf", "sun",
+                                                           "lamp"});
+    expect(result.scene.nodes[4].light == 0 && result.scene.nodes[5].light == 1);
+    // Meshes are kept even when only used by skipped nodes.
+    expect(result.model.meshes.size() == 2u);
+
+    options.importCameras = true;
+    options.importLights = false;
+    expect(importJson(makeGltf(), options, result)) << fatal;
+    expect(result.scene.lights.empty() && result.scene.cameras.size() == 2u);
+    expect(names(result.scene) == std::vector<std::string>{"root", "child_matrix",
+                                                           "child_trs", "leaf", "cam_rig",
+                                                           "cam_child", "ortho"});
+    expect(result.scene.nodes[5].parent == 4 && result.scene.nodes[6].camera == 1);
   };
 
   "gltf import without callbacks has no textures"_test = [] {
     GltfImportResult result;
     expect(importJson(makeGltf(), {}, result)) << fatal;
-    expect(result.materials.size() == 2u) << fatal;
-    for (const MaterialAsset& material : result.materials) {
+    expect(result.model.materials.size() == 2u) << fatal;
+    for (const MaterialAsset& material : result.model.materials) {
       expect(material.baseColorTexture.value == 0u && material.normalTexture.value == 0u);
       expect(material.metallicRoughnessTexture.value == 0u);
       expect(material.occlusionTexture.value == 0u &&
              material.emissiveTexture.value == 0u);
       expect(material.sampler.value == 0u);
     }
-    expect(result.meshes.size() == 2u && result.nodes.size() == 4u);
+    expect(result.model.meshes.size() == 2u && result.scene.nodes.size() == 9u);
   };
 
   "gltf import rejects unsupported files"_test = [] {
     GltfImportResult result;
-    result.nodes.push_back({.name = "sentinel"});
+    result.scene.nodes.push_back({.name = "sentinel"});
     const auto untouched = [&] {
-      return result.nodes.size() == 1u && result.nodes[0].name == "sentinel";
+      return result.scene.nodes.size() == 1u && result.scene.nodes[0].name == "sentinel";
     };
 
     for (const char* extension : {"KHR_draco_mesh_compression", "EXT_meshopt_compression",
@@ -281,7 +370,17 @@ int main() {
         R"({"asset": {"version": "2.0"}, "extensionsUsed": ["KHR_materials_unlit"],
             "extensionsRequired": ["KHR_materials_unlit"]})";
     expect(importJson(supported, {}, result));
-    expect(result.nodes.empty() && result.meshes.empty() && result.materials.empty());
+    expect(result.scene.nodes.empty() && result.model.meshes.empty() &&
+           result.model.materials.empty());
+  };
+
+  "gltf asset-only import is not implemented"_test = [] {
+    ModelAsset out;
+    expect(!importGltfAssets(kPath, {}, out));
+  };
+
+  "gltf import bistro"_test = [] {
+    GltfImportResult result;
   };
 
   return 0;

@@ -307,12 +307,12 @@ bool readPrimitive(const cgltf_primitive& primitive, PrimitiveStreams& out) {
                                        sizeof(uint32), index_count) == index_count;
 }
 
-GltfMesh convertMesh(const cgltf_data& data, const cgltf_mesh& mesh, size_t index,
-                     const MeshBuildOptions& options) {
+ModelMesh convertMesh(const cgltf_data& data, const cgltf_mesh& mesh, size_t index,
+                      const MeshBuildOptions& options) {
   auto asset = std::make_shared<MeshAsset>();
   asset->name = mesh.name ? mesh.name : "mesh_" + std::to_string(index);
 
-  GltfMesh out;
+  ModelMesh out;
   std::vector<PrimitiveStreams> primitives;
   primitives.reserve(mesh.primitives_count);
   for (size_t i = 0; i < mesh.primitives_count; ++i) {
@@ -348,7 +348,58 @@ GltfMesh convertMesh(const cgltf_data& data, const cgltf_mesh& mesh, size_t inde
   return out;
 }
 
-void convertNodeTransform(const cgltf_node& node, GltfNode& out) {
+CameraAsset convertCamera(const cgltf_camera& camera, size_t index) {
+  CameraAsset out;
+  out.name = camera.name ? camera.name : "camera_" + std::to_string(index);
+  if (camera.type == cgltf_camera_type_orthographic) {
+    const cgltf_camera_orthographic& ortho = camera.data.orthographic;
+    out.projection = ECameraProjection::Orthographic;
+    out.orthoHalfHeight = ortho.ymag;
+    out.aspect = ortho.ymag != 0.0f ? ortho.xmag / ortho.ymag : 0.0f;
+    out.nearZ = ortho.znear;
+    out.farZ = ortho.zfar;
+  } else {
+    const cgltf_camera_perspective& perspective = camera.data.perspective;
+    out.projection = ECameraProjection::Perspective;
+    out.fovY = perspective.yfov;
+    out.aspect = perspective.has_aspect_ratio ? perspective.aspect_ratio : 0.0f;
+    out.nearZ = perspective.znear;
+    if (perspective.has_zfar) {
+      out.farZ = perspective.zfar;
+    }
+  }
+  return out;
+}
+
+std::optional<LightAsset> convertLight(const cgltf_light& light, size_t index) {
+  LightAsset out;
+  switch (light.type) {
+    case cgltf_light_type_directional:
+      out.type = ELightType::Directional;
+      break;
+    case cgltf_light_type_point:
+      out.type = ELightType::Point;
+      break;
+    case cgltf_light_type_spot:
+      out.type = ELightType::Spot;
+      break;
+    default:
+      ALOGW("glTF: skipped light %zu with an unknown type", index);
+      return std::nullopt;
+  }
+  out.name = light.name ? light.name : "light_" + std::to_string(index);
+  out.color = Vec3(light.color[0], light.color[1], light.color[2]);
+  out.intensity = light.intensity;
+  // 0 when undefined.
+  if (light.range > 0.0f) {
+    out.range = light.range;
+  }
+  out.innerConeAngle = light.spot_inner_cone_angle;
+  out.outerConeAngle = light.spot_outer_cone_angle;
+  return out;
+}
+
+void convertNodeTransform(const cgltf_node& node, SceneNodeAsset& out) {
   if (node.has_matrix) {
     const float* m = node.matrix;
     const Mat44 matrix(Vec4(m[0], m[1], m[2], m[3]), Vec4(m[4], m[5], m[6], m[7]),
@@ -374,9 +425,10 @@ void convertNodeTransform(const cgltf_node& node, GltfNode& out) {
   }
 }
 
-// Depth first from the roots of the default scene, parents before children.
-void convertNodes(const cgltf_data& data, const std::vector<GltfMesh>& meshes,
-                  std::vector<GltfNode>& out) {
+// Depth first from the roots of the default scene, parents before children. Only the
+// cameras and lights used by the imported nodes are kept.
+void convertNodes(const cgltf_data& data, const GltfImportOptions& options,
+                  const std::vector<ModelMesh>& meshes, SceneAsset& out) {
   std::vector<std::pair<const cgltf_node*, int32>> stack;
   const cgltf_scene* scene = data.scene ? data.scene : data.scenes;
   if (scene) {
@@ -397,6 +449,9 @@ void convertNodes(const cgltf_data& data, const std::vector<GltfMesh>& meshes,
     }
   }
 
+  constexpr int32 kNotConverted = -2;
+  std::vector<int32> cameras(data.cameras_count, kNotConverted);
+  std::vector<int32> lights(data.lights_count, kNotConverted);
   std::vector<bool> visited(data.nodes_count, false);
   while (!stack.empty()) {
     const auto [node, parent] = stack.back();
@@ -406,15 +461,40 @@ void convertNodes(const cgltf_data& data, const std::vector<GltfMesh>& meshes,
       continue;
     }
     visited[node_index] = true;
+    if ((node->camera && !options.importCameras) ||
+        (node->light && !options.importLights)) {
+      continue;
+    }
 
-    const int32 index = static_cast<int32>(out.size());
-    GltfNode& converted = out.emplace_back();
+    const int32 index = static_cast<int32>(out.nodes.size());
+    SceneNodeAsset& converted = out.nodes.emplace_back();
     converted.name = node->name ? node->name : "";
     converted.parent = parent;
     convertNodeTransform(*node, converted);
     if (node->mesh) {
       const size_t mesh_index = cgltf_mesh_index(&data, node->mesh);
       converted.mesh = meshes[mesh_index].asset ? static_cast<int32>(mesh_index) : -1;
+    }
+    if (node->camera) {
+      const size_t camera_index = cgltf_camera_index(&data, node->camera);
+      int32& camera = cameras[camera_index];
+      if (camera == kNotConverted) {
+        camera = static_cast<int32>(out.cameras.size());
+        out.cameras.push_back(convertCamera(*node->camera, camera_index));
+      }
+      converted.camera = camera;
+    }
+    if (node->light) {
+      const size_t light_index = cgltf_light_index(&data, node->light);
+      int32& light = lights[light_index];
+      if (light == kNotConverted) {
+        std::optional<LightAsset> asset = convertLight(*node->light, light_index);
+        light = asset ? static_cast<int32>(out.lights.size()) : -1;
+        if (asset) {
+          out.lights.push_back(std::move(*asset));
+        }
+      }
+      converted.light = light;
     }
     for (size_t i = node->children_count; i-- > 0;) {
       stack.emplace_back(node->children[i], index);
@@ -443,17 +523,18 @@ bool importParsed(const cgltf_options& options, cgltf_data* data, const char* pa
   }
 
   GltfImportResult imported;
+  ModelAsset& model = imported.model;
   TextureResolver textures(*data, import_options, getDirectory(path));
-  imported.materials.reserve(data->materials_count);
+  model.materials.reserve(data->materials_count);
   for (size_t i = 0; i < data->materials_count; ++i) {
-    imported.materials.push_back(convertMaterial(data->materials[i], i, textures));
+    model.materials.push_back(convertMaterial(data->materials[i], i, textures));
   }
-  imported.meshes.reserve(data->meshes_count);
+  model.meshes.reserve(data->meshes_count);
   for (size_t i = 0; i < data->meshes_count; ++i) {
-    imported.meshes.push_back(
+    model.meshes.push_back(
         convertMesh(*data, data->meshes[i], i, import_options.meshBuild));
   }
-  convertNodes(*data, imported.meshes, imported.nodes);
+  convertNodes(*data, import_options, model.meshes, imported.scene);
   out = std::move(imported);
   return true;
 }
@@ -487,6 +568,12 @@ bool importGltfFromMemory(Span<const uint8> bytes, const char* path,
   }
   const CgltfDataPtr owner(data);
   return importParsed(cgltf_opts, data, path, options, out);
+}
+
+bool importGltfAssets(const char* path, const GltfImportOptions& /*options*/,
+                      ModelAsset& /*out*/) {
+  ALOGE("glTF: asset import of '%s' is not implemented", path ? path : "");
+  return false;
 }
 
 }  // namespace amaryl

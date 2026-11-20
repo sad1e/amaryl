@@ -1,7 +1,7 @@
 #pragma once
 
 #include "amaryl/core/math/math.h"
-#include "amaryl/engine/engine.h"
+#include "amaryl/engine/common.h"
 
 namespace amaryl {
 
@@ -31,6 +31,17 @@ enum class ETransformDestroyMode : uint8 {
   Recursive,
   // Children are attached to the destroyed node's parent and keep their world transform.
   ReparentChildren,
+};
+
+enum class ECameraProjection : uint8 {
+  Perspective,
+  Orthographic,
+};
+
+enum class ELightType : uint8 {
+  Directional,
+  Point,
+  Spot,
 };
 
 struct TransformDesc {

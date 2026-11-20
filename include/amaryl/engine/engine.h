@@ -1,8 +1,17 @@
 #pragma once
 
-// clang-format off
-#include "amaryl/engine/engine_export.h"
-// clang-format on
+#include "amaryl/engine/common.h"
+#include "amaryl/engine/render/renderer.h"
+#include "amaryl/engine/scene/world.h"
 
-#include "amaryl/core/amaryl.h"
-#include "amaryl/core/handle_pool.h"
+namespace amaryl {
+
+struct Engine {
+  void init(SDL_Window* pWindow, int32 width, int32 height);
+
+ private:
+  Renderer renderer_;
+  World world_;
+};
+
+}  // namespace amaryl

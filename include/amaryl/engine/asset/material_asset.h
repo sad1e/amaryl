@@ -3,7 +3,6 @@
 #include <string>
 
 #include "amaryl/core/math/math.h"
-#include "amaryl/engine/engine.h"
 #include "amaryl/engine/render/gpu_scene.shared.h"
 
 namespace amaryl {

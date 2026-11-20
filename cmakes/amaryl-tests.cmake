@@ -72,4 +72,13 @@ if(BUILD_TESTING)
     target_include_directories(amaryl-entity-test PRIVATE ${AMARYL_ROOT}/tests)
 
     add_test(NAME amaryl-entity COMMAND amaryl-entity-test)
+
+    add_executable(amaryl-camera-test
+        ${AMARYL_ROOT}/tests/engine/camera_test.cpp
+    )
+
+    target_link_libraries(amaryl-camera-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-camera-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-camera COMMAND amaryl-camera-test)
 endif()
