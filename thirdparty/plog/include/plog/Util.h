@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <cstdarg>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>

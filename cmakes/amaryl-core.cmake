@@ -13,6 +13,7 @@ set(AMARYL_CORE_SOURCES
   ${AMARYL_CORE_INCLUDE_ROOT}/handle.h
   ${AMARYL_CORE_INCLUDE_ROOT}/handle_pool.h
   ${AMARYL_CORE_INCLUDE_ROOT}/hash_combine.h
+  ${AMARYL_CORE_INCLUDE_ROOT}/logger.h
   ${AMARYL_CORE_INCLUDE_ROOT}/macros.h
   ${AMARYL_CORE_INCLUDE_ROOT}/murmur_hash.h
   ${AMARYL_CORE_INCLUDE_ROOT}/span.h
@@ -27,6 +28,7 @@ set(AMARYL_CORE_SOURCES
 
   ${AMARYL_CORE_SOURCE_ROOT}/amaryl.cpp
   ${AMARYL_CORE_SOURCE_ROOT}/assert.cpp
+  ${AMARYL_CORE_SOURCE_ROOT}/logger.cpp
   ${AMARYL_CORE_SOURCE_ROOT}/murmur_hash.cpp
 
   ${AMARYL_CORE_SOURCE_ROOT}/allocator/allocator.cpp
