@@ -1,16 +1,21 @@
 #pragma once
 
 #include "amaryl/engine/common.h"
-#include "amaryl/engine/render/renderer.h"
+#include "amaryl/engine/render/deferred_renderer.h"
 #include "amaryl/engine/scene/world.h"
+#include "amaryl/nrhi/nrhi.h"
 
 namespace amaryl {
 
 struct Engine {
-  void init(SDL_Window* pWindow, int32 width, int32 height);
+  ENGINE_API void init(SDL_Window* pWindow, int32 width, int32 height);
+
+  ENGINE_API void tick();
+
+  ENGINE_API void shutdown();
 
  private:
-  Renderer renderer_;
+  DeferredRenderer renderer_;
   World world_;
 };
 

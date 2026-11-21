@@ -26,16 +26,16 @@ struct Result {
 
   bool isOk() const { return code == Result::Code::Ok; }
 
-  static void setResult(Result* outResult, Code code, const char* message = "") {
-    if (outResult) {
-      outResult->code = code;
-      outResult->message = message;
+  static void setResult(Result* out_result, Code code, const char* message = "") {
+    if (out_result) {
+      out_result->code = code;
+      out_result->message = message;
     }
   }
 
-  static void setResult(Result* outResult, const Result& sourceResult) {
-    if (outResult) {
-      *outResult = sourceResult;
+  static void setResult(Result* out_result, const Result& sourceResult) {
+    if (out_result) {
+      *out_result = sourceResult;
     }
   }
 };
@@ -266,16 +266,16 @@ struct IContext {
 
   [[nodiscard]] virtual Holder<BufferHandle> createBuffer(const BufferDesc& desc,
                                                           const char* debugName,
-                                                          Result* outResult) = 0;
+                                                          Result* out_result) = 0;
 
   [[nodiscard]] virtual Holder<SamplerHandle> createSampler(const SamplerStateDesc& desc,
-                                                            Result* outResult) = 0;
+                                                            Result* out_result) = 0;
   [[nodiscard]] virtual Holder<TextureHandle> createTexture(const TextureDesc& desc,
                                                             const char* debugName,
-                                                            Result* outResult) = 0;
+                                                            Result* out_result) = 0;
   [[nodiscard]] virtual Holder<TextureHandle> createTextureView(
       TextureHandle texture, const TextureViewDesc& desc, const char* debugName,
-      Result* outResult) = 0;
+      Result* out_result) = 0;
 
   [[nodiscard]] virtual TextureDescriptorIndex getTextureDescriptorIndex(
       TextureHandle handle) const = 0;
@@ -283,21 +283,21 @@ struct IContext {
       SamplerHandle handle) const = 0;
 
   [[nodiscard]] virtual Holder<ComputePipelineHandle> createComputePipeline(
-      const ComputePipelineDesc& desc, Result* outResult) = 0;
+      const ComputePipelineDesc& desc, Result* out_result) = 0;
   [[nodiscard]] virtual Holder<RenderPipelineHandle> createRenderPipeline(
-      const RenderPipelineDesc& desc, Result* outResult) = 0;
+      const RenderPipelineDesc& desc, Result* out_result) = 0;
   [[nodiscard]] virtual Holder<RayTracingPipelineHandle> createRayTracingPipeline(
-      const RayTracingPipelineDesc& desc, Result* outResult) = 0;
+      const RayTracingPipelineDesc& desc, Result* out_result) = 0;
 
   [[nodiscard]] virtual Holder<ShaderModuleHandle> createShaderModule(
-      const ShaderModuleDesc& desc, Result* outResult = nullptr) = 0;
+      const ShaderModuleDesc& desc, Result* out_result = nullptr) = 0;
 
   [[nodiscard]] virtual Holder<QueryPoolHandle> createQueryPool(uint32 numQueries,
                                                                 const char* debugName,
-                                                                Result* outResult) = 0;
+                                                                Result* out_result) = 0;
 
   [[nodiscard]] virtual Holder<AccelerationStructHandle> createAccelerationStructure(
-      const AccelStructDesc& desc, Result* outResult) = 0;
+      const AccelStructDesc& desc, Result* out_result) = 0;
 
   virtual void destroy(ComputePipelineHandle handle) = 0;
   virtual void destroy(RenderPipelineHandle handle) = 0;
@@ -313,7 +313,7 @@ struct IContext {
   [[nodiscard]] virtual uint64 gpuAddress(AccelerationStructHandle handle) const = 0;
 
   [[nodiscard]] virtual AccelStructSizes getAccelerationStructSizes(
-      const AccelStructDesc& desc, Result* outResult) const = 0;
+      const AccelStructDesc& desc, Result* out_result) const = 0;
 
   virtual Result upload(BufferHandle handle, const void* data, size_t size,
                         size_t offset) = 0;

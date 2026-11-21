@@ -25,14 +25,15 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/mesh_registry.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/range_allocator.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/render_scene.h
-  ${AMARYL_ENGINE_INCLUDE_ROOT}/render/renderer.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/render/deferred_renderer.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/texture.h
 
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/material_registry.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/mesh_registry.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/range_allocator.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/render_scene.cpp
-  ${AMARYL_ENGINE_SOURCE_ROOT}/render/renderer.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/deferred_renderer.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/texture.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/camera.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/common.h
@@ -41,8 +42,6 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/model.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/scene_graph.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/scene_loader.h
-
-
 
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/camera.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/entity.cpp

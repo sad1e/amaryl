@@ -10,23 +10,30 @@ struct Engine;
 
 struct SceneRenderTargets {
   // Format: RGBA8_SRGB. Content: RGB, Albedo; A: Metallic
-  RenderTarget GBufferA;
+  RenderTarget gbufferA;
   // Format: R10G10B10A2_UNORM. Content: RG, Normal(Encoding); B, Roughenss; A: Misc
-  RenderTarget GBufferB;
+  RenderTarget gbufferB;
   // Format: RGBA16_SNORM. Content: RG, Velocity.xy; B, AO; A, SSS Mask
-  RenderTarget GBufferC;
+  RenderTarget gbufferC;
   // Format: R11G11B10
-  RenderTarget GBufferD;
+  RenderTarget gbufferD;
   // Format: D32S8
-  RenderTarget DepthTexture;
+  RenderTarget depthTexture;
 
   void init(uint32 width, uint32 height);
 };
 
-struct Renderer {
+struct DeferredRenderer {
   void init(Engine* engine);
+
+  void beginFrame();
+  void endFrame();
+
   void renderGBuffersPass();
   void renderPostProcessPass();
+
+ private:
+  SceneRenderTargets render_targets_;
 };
 
 }  // namespace amaryl
