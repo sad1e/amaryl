@@ -69,7 +69,7 @@ std::unique_ptr<IContext> createVulkanContextWithSwapchain(
     }();
   }
 
-  if (selected_device > num_devices) {
+  if (selected_device >= num_devices) {
     ASSERT(false, "Invalid device index");
     return nullptr;
   }
