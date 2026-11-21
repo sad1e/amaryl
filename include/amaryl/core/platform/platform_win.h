@@ -60,7 +60,4 @@
   #define COUNTOF(x) _countof(x)
 #endif
 
-// Vulkan platform definitions.
-#define VK_USE_PLATFORM_WIN32_KHR
-
 // clang-format on

@@ -76,3 +76,7 @@ target_link_libraries(${TARGET}
   plog::plog
   "$<$<PLATFORM_ID:Windows>:dbghelp>"
 )
+  target_compile_definitions(
+    ${TARGET}
+    PRIVATE PLOG_EXPORT
+    INTERFACE PLOG_IMPORT)

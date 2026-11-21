@@ -2,7 +2,6 @@
 
 #include "amaryl/engine/render/texture.h"
 #include "amaryl/nrhi/nrhi.h"
-#include "amaryl/nrhi/vulkan/nvk.h"
 
 namespace amaryl {
 
@@ -23,17 +22,30 @@ struct SceneRenderTargets {
   void init(uint32 width, uint32 height);
 };
 
-struct DeferredRenderer {
+// Per frame: beginFrame(), the passes, endFrame(). The passes and endFrame() must only
+// be called when beginFrame() succeeded.
+struct ENGINE_API DeferredRenderer final {
+  // `engine` must outlive the renderer and own a valid RHI.
   void init(Engine* engine);
+  // Releases the GPU resources, the GPU must be idle.
+  void shutdown();
 
-  void beginFrame();
+  // Acquires the swapchain image and the command buffer. Returns false when no swapchain
+  // image is available, the swapchain then has to be recreated.
+  bool beginFrame();
+  // Submits the command buffer and presents the swapchain image.
   void endFrame();
 
   void renderGBuffersPass();
   void renderPostProcessPass();
 
  private:
+  IContext* rhi_{nullptr};
   SceneRenderTargets render_targets_;
+
+  // Valid between beginFrame() and endFrame().
+  ICommandBuffer* commands_{nullptr};
+  TextureHandle swapchain_texture_{};
 };
 
 }  // namespace amaryl

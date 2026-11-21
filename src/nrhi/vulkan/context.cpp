@@ -1945,8 +1945,8 @@ TextureHandle Context::getCurrentSwapchainTexture() {
 
   TextureHandle image = swapchain_->getCurrentTexture();
 
+  // Out of date swapchain, the caller has to recreate it.
   if (!image.valid()) {
-    ASSERT(false, "Swapchain has no valid texture.");
     return {};
   }
 
@@ -2783,12 +2783,11 @@ Result Context::initContext(const HWDeviceDesc& desc) {
 
   workaround_fixed_size_accel_struct_array_ =
       strstr(physical_device_properties2_.properties.deviceName, "Adreno") != nullptr;
-  ALOGI("Vulkan physical device: %s\n",
-        physical_device_properties2_.properties.deviceName);
-  ALOGI("\tAPI version: %i.%i.%i.%i\n", VK_API_VERSION_MAJOR(api_version),
+  ALOGI("Vulkan physical device: %s", physical_device_properties2_.properties.deviceName);
+  ALOGI("\tAPI version: %i.%i.%i.%i", VK_API_VERSION_MAJOR(api_version),
         VK_API_VERSION_MINOR(api_version), VK_API_VERSION_PATCH(api_version),
         VK_API_VERSION_VARIANT(api_version));
-  ALOGI("\tDriver info: %s %s\n", physical_device_driver_properties_.driverName,
+  ALOGI("\tDriver info: %s %s", physical_device_driver_properties_.driverName,
         physical_device_driver_properties_.driverInfo);
 
   ALOGI("Vulkan physical extensions:");
@@ -3030,7 +3029,7 @@ Result Context::initContext(const HWDeviceDesc& desc) {
           .sType =
               VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR,
           .dynamicRenderingLocalRead = VK_TRUE,
-      };
+  };
   VkPhysicalDeviceShaderTileImageFeaturesEXT shader_tile_image_features = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_FEATURES_EXT,
       .shaderTileImageColorReadAccess = VK_TRUE,
@@ -3046,7 +3045,7 @@ Result Context::initContext(const HWDeviceDesc& desc) {
           .sType =
               VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_MODE_FIFO_LATEST_READY_FEATURES_KHR,
           .presentModeFifoLatestReady = VK_TRUE,
-      };
+  };
   VkPhysicalDeviceHostImageCopyFeaturesEXT host_image_copy_features = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT,
       .hostImageCopy = VK_TRUE,
@@ -4015,13 +4014,13 @@ Result Context::createInstance() {
   }
 
   enabled_instance_extension_names_ = {
-    VK_KHR_SURFACE_EXTENSION_NAME,
+      VK_KHR_SURFACE_EXTENSION_NAME,
 #if defined(PLATFORM_WINDOWS)
-    VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+      VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
 #elif defined(PLATFORM_ANDROID)
-    VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
+      VK_KHR_ANDROID_SURFACE_EXTENSION_NAME,
 #else
-    ASSERT(false, TEXT("Unsupported platform."));
+      ASSERT(false, TEXT("Unsupported platform."));
 #endif
   };
 
@@ -4675,7 +4674,7 @@ void Context::getBuildInfoTLAS(const AccelStructDesc& desc,
           .flags = toVkBuildAccelerationStructureFlags(desc.buildFlags),
           .geometryCount = 1,
           .pGeometries = &out_geom,
-      };
+  };
 
   out_info.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR,
   vkGetAccelerationStructureBuildSizesKHR(device_,

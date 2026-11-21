@@ -9,6 +9,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_INCLUDE_ROOT}/engine.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/input_system.h
 
+  ${AMARYL_ENGINE_SOURCE_ROOT}/engine.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/input_system.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_importer.h
@@ -33,6 +34,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/range_allocator.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/render_scene.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/deferred_renderer.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/scene_render_targets.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/texture.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/camera.h

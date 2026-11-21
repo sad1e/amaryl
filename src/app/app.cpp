@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "amaryl/engine/engine.h"
+
 namespace amaryl {
 
 namespace {
@@ -55,7 +57,11 @@ bool App::initialize(const AppInitInfo& info) {
   }
   width_ = static_cast<uint32>(metrics_.pixel_width);
   height_ = static_cast<uint32>(metrics_.pixel_height);
-  // InitializeEngine(window_);
+  if (!InitializeEngine(window_, width_, height_)) {
+    ShowErrorMessageBox("Engine initialization failed", "Failed to create the renderer.",
+                        window_);
+    return false;
+  }
 
   initialized_ = true;
   quit_requested_ = false;
@@ -66,12 +72,8 @@ bool App::initialize(const AppInitInfo& info) {
 }
 
 void App::shutdown() {
-  // if (GEngine) {
-  //   if (initialized_) {
-  //     GEngine->getRHI()->wait({});
-  //   }
-  //   ShutdownEngine();
-  // }
+  // Before the window, the swapchain references its surface.
+  ShutdownEngine();
 
   if (window_) {
     SDL_DestroyWindow(window_);
@@ -141,7 +143,7 @@ bool App::resizeWindow(int32 width, int32 height) {
   width_ = static_cast<uint32>(width);
   height_ = static_cast<uint32>(height);
 
-  // GEngine->processResize(width, height);
+  GEngine->processResize(width_, height_);
 
   return true;
 }
@@ -203,17 +205,13 @@ bool App::tick() {
       std::min(static_cast<float>((start - last_time_) / frequency), 0.1f);
   last_time_ = start;
 
-  // GEngine->beginFrame();
-  // if (!prepareFrame(delta_time)) {
-  //   GEngine->endFrame();
-  //   return false;
-  // }
-  // GEngine->tick(this, delta_time);
-  // if (!renderFrame(delta_time)) {
-  //   GEngine->endFrame();
-  //   return false;
-  // }
-  // GEngine->endFrame();
+  if (!prepareFrame(delta_time)) {
+    return false;
+  }
+  GEngine->update(delta_time);
+  if (!renderFrame(delta_time)) {
+    return false;
+  }
 
   const double elapsed = (SDL_GetPerformanceCounter() - start) / frequency;
   if (elapsed < 1.0 / kDefaultFPS) {
@@ -223,17 +221,8 @@ bool App::tick() {
 }
 
 bool App::renderFrame(float delta_time) {
-  // IContext& context = *GEngine->getRHI();
-  // const TextureHandle target = context.getCurrentSwapchainTexture();
-  // ICommandBuffer& commands = context.acquireCommandBuffer();
-  // commands.cmdBeginRendering(
-  //     {.color = {{.loadOp = ELoadOp::Clear, .clearColor = {0.06f, 0.07f,
-  //     0.09f, 1.0f}}}},
-  //     {.color = {{.texture = target}}});
-  // commands.cmdEndRendering();
-  // context.submit(commands, target);
-
-  return true;
+  (void)delta_time;
+  return GEngine->render();
 }
 
 bool App::getQuitState(const SDL_Event& event) const {

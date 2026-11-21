@@ -13,6 +13,4 @@ namespace amaryl {
 constexpr uint32 kMaxAssetDebugName = 256;
 constexpr uint32 kMaxDebugName = 256;
 
-inline std::unique_ptr<IContext> kRHI;
-
 }  // namespace amaryl

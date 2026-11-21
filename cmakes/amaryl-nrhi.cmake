@@ -68,6 +68,14 @@ target_link_libraries(${TARGET}
   amaryl-core
   SDL3::SDL3
   plog::plog
-  Vulkan::Vulkan
+  Vulkan::Headers
   pystring
 )
+# The vold should define `VK_USE_PLATFORM_*_KHR`.
+if(WIN32)
+  target_compile_definitions(${TARGET} PUBLIC VK_USE_PLATFORM_WIN32_KHR)
+elseif(ANDROID)
+  target_compile_definitions(${TARGET} PUBLIC VK_USE_PLATFORM_ANDROID_KHR)
+elseif(IOS)
+  target_compile_definitions(${TARGET} PUBLIC VK_USE_PLATFORM_IOS_MVK)
+endif()
