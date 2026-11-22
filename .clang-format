@@ -1,3 +1,5 @@
 Language: Cpp
 BasedOnStyle: Google
 ColumnLimit: 90
+ContinuationIndentWidth: 2
+AlignAfterOpenBracket: DontAlign

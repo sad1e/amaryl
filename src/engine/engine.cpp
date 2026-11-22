@@ -4,7 +4,7 @@
 
 namespace amaryl {
 
-Engine* GEngine = nullptr;
+Engine* kEngine = nullptr;
 
 Engine::~Engine() { shutdown(); }
 
@@ -68,20 +68,20 @@ bool Engine::render() {
 }
 
 bool InitializeEngine(SDL_Window* window, uint32 width, uint32 height) {
-  ASSERT(GEngine == nullptr, "Engine initialized twice");
+  ASSERT(kEngine == nullptr, "Engine initialized twice");
 
   auto* engine = new Engine();
   if (!engine->init(window, width, height)) {
     delete engine;
     return false;
   }
-  GEngine = engine;
+  kEngine = engine;
   return true;
 }
 
 void ShutdownEngine() {
-  delete GEngine;
-  GEngine = nullptr;
+  delete kEngine;
+  kEngine = nullptr;
 }
 
 }  // namespace amaryl

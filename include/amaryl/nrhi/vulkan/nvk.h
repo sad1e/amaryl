@@ -37,6 +37,7 @@ struct ShaderModuleState final {
       .codeSize = 0,
       .pCode = nullptr,
   };
+  VkShaderModule module{VK_NULL_HANDLE};
   uint32 pushConstantsSize = 0u;
 };
 

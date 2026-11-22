@@ -248,15 +248,14 @@ Result _validate_range(const VkExtent3D& ext, uint32 num_levels,
 }
 
 VkPipelineShaderStageCreateInfo _get_pipeline_shader_stage_create_info(
-    VkShaderStageFlagBits stage, const VkShaderModuleCreateInfo& ci,
-    const char* entry_point, const VkSpecializationInfo* spec_info) {
-  //
+    VkShaderStageFlagBits stage, VkShaderModule module, const char* entry_point,
+    const VkSpecializationInfo* spec_info) {
   return VkPipelineShaderStageCreateInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-      .pNext = &ci,
+      .pNext = nullptr,
       .flags = 0,
       .stage = stage,
-      .module = VK_NULL_HANDLE,
+      .module = module,
       .pName = entry_point ? entry_point : "main",
       .pSpecializationInfo = spec_info,
   };
@@ -1474,6 +1473,7 @@ void Context::destroy(ShaderModuleHandle handle) {
                  const ShaderModuleState* shader = shader_module_pool_.get(handle);
                  ASSERT(shader != nullptr);
                  if (shader) {
+                   vkDestroyShaderModule(device_, shader->module, nullptr);
                    free(const_cast<uint32*>(shader->createInfo.pCode));
                    shader_module_pool_.destroy(handle);
                  }
@@ -2117,7 +2117,7 @@ VkPipeline Context::getVkPipeline(ComputePipelineHandle handle) {
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .flags = 0,
         .stage = _get_pipeline_shader_stage_create_info(VK_SHADER_STAGE_COMPUTE_BIT,
-                                                        sms->createInfo,
+                                                        sms->module,
                                                         cps->desc.entryPoint, &spec_info),
         .layout = cps->pipelineLayout,
         .basePipelineHandle = VK_NULL_HANDLE,
@@ -2334,17 +2334,17 @@ VkPipeline Context::getVkPipeline(RenderPipelineHandle handle, uint32 view_mask)
       .stencilMasks(VK_STENCIL_FACE_BACK_BIT, 0xFF, rpdesc.backFaceStencil.writeMask,
                     rpdesc.backFaceStencil.readMask)
       .shaderStage(taskModule ? _get_pipeline_shader_stage_create_info(
-                                    VK_SHADER_STAGE_TASK_BIT_EXT, taskModule->createInfo,
+                                    VK_SHADER_STAGE_TASK_BIT_EXT, taskModule->module,
                                     rpdesc.entryPointTask, &spec_info)
                               : VkPipelineShaderStageCreateInfo{.module = VK_NULL_HANDLE})
       .shaderStage(meshModule ? _get_pipeline_shader_stage_create_info(
-                                    VK_SHADER_STAGE_MESH_BIT_EXT, meshModule->createInfo,
+                                    VK_SHADER_STAGE_MESH_BIT_EXT, meshModule->module,
                                     rpdesc.entryPointMesh, &spec_info)
                               : _get_pipeline_shader_stage_create_info(
-                                    VK_SHADER_STAGE_VERTEX_BIT, vertModule->createInfo,
+                                    VK_SHADER_STAGE_VERTEX_BIT, vertModule->module,
                                     rpdesc.entryPointVert, &spec_info))
       .shaderStage(_get_pipeline_shader_stage_create_info(
-          VK_SHADER_STAGE_FRAGMENT_BIT, fragModule->createInfo, rpdesc.entryPointFrag,
+          VK_SHADER_STAGE_FRAGMENT_BIT, fragModule->module, rpdesc.entryPointFrag,
           &spec_info))
       // .shaderStage(
       //   tescModule ? _get_pipeline_shader_stage_create_info(
@@ -2479,7 +2479,7 @@ VkPipeline Context::getVkPipeline(RayTracingPipelineHandle handle) {
       return VK_SHADER_UNUSED_KHR;
     }
     shader_stages_ci[num_shader_stages] = _get_pipeline_shader_stage_create_info(
-        flag, state->createInfo, "main", &spec_info);
+        flag, state->module, "main", &spec_info);
     return num_shader_stages++;
   };
 
@@ -4545,10 +4545,21 @@ ShaderModuleState Context::createShaderModuleFromSPIRV(const void* spirv,
 
   memcpy((void*)ci.pCode, spirv, num_bytes);
 
-  return {
+  ShaderModuleState state{
       .createInfo = ci,
       .pushConstantsSize = push_constant_size,
   };
+
+  const VkResult create_result =
+      vkCreateShaderModule(device_, &ci, nullptr, &state.module);
+  if (create_result != VK_SUCCESS) {
+    free(const_cast<uint32*>(ci.pCode));
+    Result::setResult(out_result, Result(Result::Code::RuntimeError,
+                                         "Cannot create VkShaderModule"));
+    return {};
+  }
+
+  return state;
 }
 
 const VkSamplerYcbcrConversionInfo* Context::getOrCreateYcbcrConversionInfo(

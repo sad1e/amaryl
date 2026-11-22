@@ -40,12 +40,26 @@ struct ENGINE_API DeferredRenderer final {
   void renderPostProcessPass();
 
  private:
+  // Creates the full-screen "debug lighting only" pipeline together with the small
+  // bindless test texture, sampler and device-address test buffer used to verify shader
+  // loading, bindless sampling and push-constant address passing.
+  void initDebugLightingOnly();
+  void shutdownDebugLightingOnly();
+
   IContext* rhi_{nullptr};
   SceneRenderTargets render_targets_;
 
   // Valid between beginFrame() and endFrame().
   ICommandBuffer* commands_{nullptr};
   TextureHandle swapchain_texture_{};
+
+  // Debug lighting-only full-screen pass.
+  Holder<ShaderModuleHandle> debug_vert_;
+  Holder<ShaderModuleHandle> debug_frag_;
+  Holder<RenderPipelineHandle> debug_pipeline_;
+  Holder<TextureHandle> debug_texture_;
+  Holder<SamplerHandle> debug_sampler_;
+  Holder<BufferHandle> debug_buffer_;
 };
 
 }  // namespace amaryl

@@ -28,3 +28,8 @@ target_compile_definitions(${TARGET_EDITOR}
   PUBLIC
   SDL_MAIN_USE_CALLBACKS)
 amaryl_inject_mimalloc(${TARGET_EDITOR})
+
+# Compiled Slang shaders must be present next to the executable at runtime.
+if(TARGET amaryl-shaders)
+  add_dependencies(${TARGET_EDITOR} amaryl-shaders)
+endif()

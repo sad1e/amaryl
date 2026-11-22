@@ -121,7 +121,7 @@ VulkanPipelineBuilder& VulkanPipelineBuilder::alphaToCoverage(bool enable) {
 
 VulkanPipelineBuilder& VulkanPipelineBuilder::shaderStage(
     VkPipelineShaderStageCreateInfo stage) {
-  if (stage.pNext) {
+  if (stage.module != VK_NULL_HANDLE) {
     ASSERT(num_shader_stages_ < ARRAY_COUNT(shader_stages_));
     shader_stages_[num_shader_stages_++] = stage;
   }

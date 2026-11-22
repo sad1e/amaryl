@@ -28,12 +28,12 @@ uint32 RangeAllocator::allocate(uint32 size) {
 
 void RangeAllocator::free(uint32 offset, uint32 size) {
   ASSERT(size != 0 && size <= allocated_ && offset + size <= end_,
-         "RangeAllocator: invalid free");
+    "RangeAllocator: invalid free");
   allocated_ -= size;
 
   auto next = free_by_offset_.lower_bound(offset);
   ASSERT(next == free_by_offset_.end() || next->first >= offset + size,
-         "RangeAllocator: range is already free");
+    "RangeAllocator: range is already free");
   if (next != free_by_offset_.end() && next->first == offset + size) {
     size += next->second;
     const auto merged = next++;

@@ -16,6 +16,7 @@ struct RenderTarget {
   TextureDesc desc;
 
   std::string debugName;
+  // is the texture be used.
   bool inUse{false};
 };
 

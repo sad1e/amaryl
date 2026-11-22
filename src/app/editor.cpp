@@ -2,6 +2,10 @@
 
 #include <SDL3/SDL_main.h>
 
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+
 #include "amaryl/app/app.h"
 
 namespace {
@@ -10,7 +14,6 @@ std::unique_ptr<amaryl::App> app;
 uint32 frame_limit = 0;
 uint32 frame_count = 0;
 std::string screenshot_path;
-
 }  // namespace
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
@@ -27,14 +30,15 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
       hidden = true;
     }
   }
+
   app = std::make_unique<amaryl::App>();
   if (!app->initialize({.name = "App",
-                        .width = amaryl::kDefaultWidth,
-                        .height = amaryl::kDefaultHeight,
-                        .hidden = hidden})) {
+        .width = amaryl::kDefaultWidth,
+        .height = amaryl::kDefaultHeight,
+        .hidden = hidden})) {
     return SDL_APP_FAILURE;
   }
-  *appstate = app.get();
+
   return SDL_APP_CONTINUE;
 }
 
@@ -50,6 +54,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
   if (!app || !app->tick()) {
     return SDL_APP_FAILURE;
   }
+
   if (frame_limit && ++frame_count >= frame_limit) {
     // if (!screenshot_path.empty() && !app->captureScreenshot(screenshot_path)) {
     //   return SDL_APP_FAILURE;

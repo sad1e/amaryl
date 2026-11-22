@@ -12,14 +12,13 @@ bool validateAsset(const MeshAsset& asset) {
   const size_t vertex_count = asset.positions.size();
   const size_t lod_count = asset.lods.size();
   bool valid =
-      vertex_count != 0 &&
-      asset.attributes.size() == vertex_count * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS &&
-      !asset.indices.empty() && asset.sectionCount != 0 &&
-      asset.sectionCount <= 0xffffu && lod_count != 0 &&
-      lod_count <= GPU_SCENE_MAX_LODS &&
-      asset.sections.size() == lod_count * asset.sectionCount &&
-      !asset.meshlets.empty() && !asset.meshletVertices.empty() &&
-      !asset.meshletTriangles.empty() && asset.meshletTriangles.size() % 4 == 0;
+    vertex_count != 0 &&
+    asset.attributes.size() == vertex_count * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS &&
+    !asset.indices.empty() && asset.sectionCount != 0 && asset.sectionCount <= 0xffffu &&
+    lod_count != 0 && lod_count <= GPU_SCENE_MAX_LODS &&
+    asset.sections.size() == lod_count * asset.sectionCount && !asset.meshlets.empty() &&
+    !asset.meshletVertices.empty() && !asset.meshletTriangles.empty() &&
+    asset.meshletTriangles.size() % 4 == 0;
   for (const GpuMeshLod& lod : asset.lods) {
     valid = valid &&
             size_t{lod.meshletOffset} + lod.meshletCount <= asset.meshlets.size() &&
@@ -34,10 +33,10 @@ bool validateAsset(const MeshAsset& asset) {
     const uint32 counts = meshlet.packedCounts;
     valid = valid &&
             size_t{meshlet.vertexOffset} + gpuMeshletVertexCount(counts) <=
-                asset.meshletVertices.size() &&
+              asset.meshletVertices.size() &&
             meshlet.triangleOffset % 4 == 0 &&
             size_t{meshlet.triangleOffset} + gpuMeshletTriangleCount(counts) * 3 <=
-                asset.meshletTriangles.size();
+              asset.meshletTriangles.size();
   }
   for (const uint32 index : asset.indices) {
     valid = valid && index < vertex_count;
@@ -60,8 +59,8 @@ MeshRegistry::~MeshRegistry() {
   });
 }
 
-MeshHandle MeshRegistry::create(std::shared_ptr<const MeshAsset> asset,
-                                Span<const MaterialHandle> default_materials) {
+MeshHandle MeshRegistry::create(
+  std::shared_ptr<const MeshAsset> asset, Span<const MaterialHandle> default_materials) {
   if (!asset || !validateAsset(*asset)) {
     ALOGE("MeshRegistry: malformed mesh asset '%s'", asset ? asset->name.c_str() : "");
     return {};
@@ -70,7 +69,7 @@ MeshHandle MeshRegistry::create(std::shared_ptr<const MeshAsset> asset,
   Record record;
   record.defaultMaterials.resize(asset->sectionCount, materials_.getDefault());
   for (size_t i = 0; i < record.defaultMaterials.size() && i < default_materials.size();
-       ++i) {
+    ++i) {
     if (default_materials[i]) {
       record.defaultMaterials[i] = default_materials[i];
     }
@@ -84,9 +83,9 @@ MeshHandle MeshRegistry::create(std::shared_ptr<const MeshAsset> asset,
   record.sectionOffset = sections_.allocate(static_cast<uint32>(asset->sections.size()));
   record.meshletOffset = meshlets_.allocate(static_cast<uint32>(asset->meshlets.size()));
   record.meshletVertexOffset =
-      meshlet_vertices_.allocate(static_cast<uint32>(asset->meshletVertices.size()));
-  record.meshletTriangleOffset = meshlet_triangles_.allocate(
-      static_cast<uint32>(asset->meshletTriangles.size() / 4));
+    meshlet_vertices_.allocate(static_cast<uint32>(asset->meshletVertices.size()));
+  record.meshletTriangleOffset =
+    meshlet_triangles_.allocate(static_cast<uint32>(asset->meshletTriangles.size() / 4));
   record.pendingUpload = true;
   record.asset = std::move(asset);
 
@@ -104,10 +103,10 @@ void MeshRegistry::destroy(MeshHandle handle) {
   indices_.free(record.indexOffset, static_cast<uint32>(asset.indices.size()));
   sections_.free(record.sectionOffset, static_cast<uint32>(asset.sections.size()));
   meshlets_.free(record.meshletOffset, static_cast<uint32>(asset.meshlets.size()));
-  meshlet_vertices_.free(record.meshletVertexOffset,
-                         static_cast<uint32>(asset.meshletVertices.size()));
-  meshlet_triangles_.free(record.meshletTriangleOffset,
-                          static_cast<uint32>(asset.meshletTriangles.size() / 4));
+  meshlet_vertices_.free(
+    record.meshletVertexOffset, static_cast<uint32>(asset.meshletVertices.size()));
+  meshlet_triangles_.free(
+    record.meshletTriangleOffset, static_cast<uint32>(asset.meshletTriangles.size() / 4));
   for (const MaterialHandle material : record.defaultMaterials) {
     materials_.release(material);
   }
@@ -175,39 +174,37 @@ const MeshRegistry::Record& MeshRegistry::getRecord(MeshHandle handle) const {
   return *pool_.get(handle);
 }
 
-void MeshRegistry::upload(uint32 slot, const Record& record,
-                          GpuSceneUploads& uploads) const {
+void MeshRegistry::upload(
+  uint32 slot, const Record& record, GpuSceneUploads& uploads) const {
   const MeshAsset& asset = *record.asset;
   const uint32 vertex_count = asset.getVertexCount();
   uploads[EGpuSceneBuffer::VertexPositions].write(record.baseVertex * kPositionDwords,
-                                                  asset.positions.data(),
-                                                  vertex_count * kPositionDwords);
+    asset.positions.data(), vertex_count * kPositionDwords);
   uploads[EGpuSceneBuffer::VertexAttributes].write(
-      record.baseVertex * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS, asset.attributes.data(),
-      vertex_count * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS);
-  uploads[EGpuSceneBuffer::Indices].write(record.indexOffset, asset.indices.data(),
-                                          static_cast<uint32>(asset.indices.size()));
-  uploads[EGpuSceneBuffer::MeshletVertices].write(
-      record.meshletVertexOffset, asset.meshletVertices.data(),
-      static_cast<uint32>(asset.meshletVertices.size()));
-  uploads[EGpuSceneBuffer::MeshletTriangles].write(
-      record.meshletTriangleOffset, asset.meshletTriangles.data(),
-      static_cast<uint32>(asset.meshletTriangles.size() / 4));
+    record.baseVertex * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS, asset.attributes.data(),
+    vertex_count * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS);
+  uploads[EGpuSceneBuffer::Indices].write(
+    record.indexOffset, asset.indices.data(), static_cast<uint32>(asset.indices.size()));
+  uploads[EGpuSceneBuffer::MeshletVertices].write(record.meshletVertexOffset,
+    asset.meshletVertices.data(), static_cast<uint32>(asset.meshletVertices.size()));
+  uploads[EGpuSceneBuffer::MeshletTriangles].write(record.meshletTriangleOffset,
+    asset.meshletTriangles.data(),
+    static_cast<uint32>(asset.meshletTriangles.size() / 4));
 
   std::vector<GpuMeshSection> sections = asset.sections;
   for (GpuMeshSection& section : sections) {
     section.firstIndex += record.indexOffset;
   }
   uploads[EGpuSceneBuffer::MeshSections].writeElements<GpuMeshSection>(
-      record.sectionOffset, sections);
+    record.sectionOffset, sections);
 
   std::vector<GpuMeshlet> meshlets = asset.meshlets;
   for (GpuMeshlet& meshlet : meshlets) {
     meshlet.vertexOffset += record.meshletVertexOffset;
     meshlet.triangleOffset += record.meshletTriangleOffset * 4;
   }
-  uploads[EGpuSceneBuffer::Meshlets].writeElements<GpuMeshlet>(record.meshletOffset,
-                                                               meshlets);
+  uploads[EGpuSceneBuffer::Meshlets].writeElements<GpuMeshlet>(
+    record.meshletOffset, meshlets);
 
   const Vec3 aabb_min(asset.aabbMin);
   const Vec3 aabb_max(asset.aabbMax);

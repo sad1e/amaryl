@@ -40,9 +40,9 @@ struct ENGINE_API Engine final {
   uint32 height_{0};
 };
 
-ENGINE_API extern Engine* GEngine;
+ENGINE_API extern Engine* kEngine;
 
-// Creates GEngine, returns false and leaves GEngine null on failure.
+// Creates kEngine, returns false and leaves kEngine null on failure.
 ENGINE_API bool InitializeEngine(SDL_Window* window, uint32 width, uint32 height);
 ENGINE_API void ShutdownEngine();
 

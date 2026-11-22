@@ -27,6 +27,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/range_allocator.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/render_scene.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/deferred_renderer.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/render/shader_loader.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/texture.h
 
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/material_registry.cpp
@@ -35,6 +36,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/render_scene.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/deferred_renderer.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/scene_render_targets.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/shader_loader.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/texture.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/camera.h

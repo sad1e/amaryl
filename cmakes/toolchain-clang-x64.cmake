@@ -67,6 +67,12 @@ message(STATUS "LLVM Compiler: ${_CLANG_VERSION}")
 set(CMAKE_C_COMPILER "${_CLANG_EXECUTABLE}" CACHE FILEPATH "" FORCE)
 set(CMAKE_CXX_COMPILER "${_CLANGXX_EXECUTABLE}" CACHE FILEPATH "" FORCE)
 
+# Resource compiler: use LLVM's llvm-rc, which understands the clang-preprocessed
+# `.rc` output and avoids the MSVC `rc.exe`/`cmake_llvm_rc` hang.
+if(EXISTS "${_LLVM_BIN}/llvm-rc.exe")
+  set(CMAKE_RC_COMPILER "${_LLVM_BIN}/llvm-rc.exe" CACHE FILEPATH "" FORCE)
+endif()
+
 # MSVC ABI, GNU-style clang++ frontend.
 set(CMAKE_C_COMPILER_TARGET "x86_64-pc-windows-msvc" CACHE STRING "" FORCE)
 set(CMAKE_CXX_COMPILER_TARGET "x86_64-pc-windows-msvc" CACHE STRING "" FORCE)

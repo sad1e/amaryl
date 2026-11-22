@@ -195,9 +195,8 @@ struct GpuSceneRoot {
   GPU_SCENE_UINT frameIndex;
 };
 
-GPU_SCENE_INLINE GPU_SCENE_UINT gpuPackMeshletCounts(GPU_SCENE_UINT vertex_count,
-                                                     GPU_SCENE_UINT triangle_count,
-                                                     GPU_SCENE_UINT section) {
+GPU_SCENE_INLINE GPU_SCENE_UINT gpuPackMeshletCounts(
+  GPU_SCENE_UINT vertex_count, GPU_SCENE_UINT triangle_count, GPU_SCENE_UINT section) {
   return (vertex_count & 0xffu) | ((triangle_count & 0xffu) << 8u) | (section << 16u);
 }
 
@@ -220,7 +219,7 @@ GPU_SCENE_INLINE GPU_SCENE_UINT gpuInstanceRayTracingMask(GPU_SCENE_UINT flags) 
 #if defined(__SLANG__)
 GPU_SCENE_INLINE float3 gpuTransformPoint(GpuTransform t, float3 p) {
   return float3(dot(t.rows[0].xyz, p) + t.rows[0].w, dot(t.rows[1].xyz, p) + t.rows[1].w,
-                dot(t.rows[2].xyz, p) + t.rows[2].w);
+    dot(t.rows[2].xyz, p) + t.rows[2].w);
 }
 
 GPU_SCENE_INLINE float3 gpuTransformVector(GpuTransform t, float3 v) {
