@@ -1,6 +1,9 @@
 # plog
 set(AMARYL_3RDPARTY_ROOT ${AMARYL_ROOT}/thirdparty)
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/plog)
+# `char` strings are UTF-8 everywhere. plog only detects it with MSVC's `/utf-8`, every
+# target linking plog must agree since amaryl-core exports its implementation.
+target_compile_definitions(plog INTERFACE PLOG_CHAR_IS_UTF8=1)
 
 # mimalloc
 set(MI_USE_CXX ON)
@@ -55,3 +58,6 @@ add_subdirectory(${AMARYL_3RDPARTY_ROOT}/cgltf)
 
 # meshoptimizer
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/meshoptimizer)
+
+# simdjson
+add_subdirectory(${AMARYL_3RDPARTY_ROOT}/simdjson)
