@@ -1,26 +1,12 @@
 #include "amaryl/engine/render/shader_loader.h"
 
-#include <fstream>
+#include "amaryl/core/filesystem/vfs.h"
 
 namespace amaryl {
 
 bool ShaderLoader::readBinaryFile(
   const std::string& path, std::vector<uint8>& out_bytes) {
-  std::ifstream file(path, std::ios::binary | std::ios::ate);
-  if (!file.is_open()) {
-    return false;
-  }
-
-  const std::streamsize size = file.tellg();
-  if (size <= 0) {
-    return false;
-  }
-
-  out_bytes.resize(static_cast<size_t>(size));
-  file.seekg(0, std::ios::beg);
-  file.read(reinterpret_cast<char*>(out_bytes.data()), size);
-
-  return file.good() || file.eof();
+  return GetVirtualFileSystem().readFile(path, out_bytes) && !out_bytes.empty();
 }
 
 Holder<ShaderModuleHandle> ShaderLoader::loadShaderModule(IContext* ctx,
@@ -28,6 +14,7 @@ Holder<ShaderModuleHandle> ShaderLoader::loadShaderModule(IContext* ctx,
   Result* out_result) {
   std::vector<uint8> bytes;
   if (!readBinaryFile(path, bytes)) {
+    ALOGE("Failed to read the shader '%s'", path.c_str());
     Result::setResult(
       out_result, Result::Code::RuntimeError, "Failed to read shader file");
     return {};

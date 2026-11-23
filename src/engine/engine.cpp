@@ -1,5 +1,6 @@
 #include "amaryl/engine/engine.h"
 
+#include "amaryl/core/filesystem/vfs.h"
 #include "amaryl/nrhi/vulkan/nvk.h"
 
 namespace amaryl {
@@ -10,6 +11,11 @@ Engine::~Engine() { shutdown(); }
 
 bool Engine::init(SDL_Window* window, uint32 width, uint32 height) {
   ASSERT(rhi_ == nullptr, "Engine initialized twice");
+
+  if (!GetVirtualFileSystem().isMounted(kEngineScheme)) {
+    ALOGE("engine:// is not mounted, the engine content cannot be loaded");
+    return false;
+  }
 
   vk::ContextConfig context_config{};
   rhi_ = createVulkanContextWithSwapchain(window, width, height, context_config);

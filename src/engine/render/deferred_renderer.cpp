@@ -1,10 +1,9 @@
 #include "amaryl/engine/render/deferred_renderer.h"
 
-#include <SDL3/SDL.h>
-
 #include <string>
 #include <vector>
 
+#include "amaryl/core/filesystem/vfs.h"
 #include "amaryl/engine/engine.h"
 #include "amaryl/engine/render/shader_loader.h"
 
@@ -33,10 +32,7 @@ struct DebugLightingBuffer {
 static_assert(sizeof(DebugLightingBuffer) == 32);
 
 std::string resolveShaderPath(const char* relative_path) {
-  // SDL_GetBasePath() returns SDL's cached (non-owned) string; do not free it.
-  const char* base = SDL_GetBasePath();
-  return base ? std::string(base) + "shaders/" + relative_path
-              : std::string("shaders/") + relative_path;
+  return std::string(kEngineScheme) + "://shaders/" + relative_path;
 }
 
 }  // namespace

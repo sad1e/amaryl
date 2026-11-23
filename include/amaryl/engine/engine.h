@@ -15,7 +15,8 @@ struct ENGINE_API Engine final {
 
   NO_COPYABLE_AND_MOVEABLE(Engine);
 
-  // `width` and `height` are the drawable size of `window` in pixels.
+  // `width` and `height` are the drawable size of `window` in pixels. engine:// must be
+  // mounted in the virtual file system.
   bool init(SDL_Window* window, uint32 width, uint32 height);
   // Waits for the GPU, then releases the renderer and the RHI. Safe to call twice.
   void shutdown();

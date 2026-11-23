@@ -1,10 +1,12 @@
 #include "amaryl/engine/asset/asset_importer.h"
 
+#include <cstdlib>
 #include <cstring>
 #include <optional>
 #include <string_view>
 #include <utility>
 
+#include "amaryl/core/filesystem/vfs.h"
 #include "amaryl/core/logger.h"
 #include "cgltf/cgltf.h"
 
@@ -20,6 +22,53 @@ struct CgltfDataDeleter {
   void operator()(cgltf_data* data) const { cgltf_free(data); }
 };
 using CgltfDataPtr = std::unique_ptr<cgltf_data, CgltfDataDeleter>;
+
+// cgltf reads the files with `fopen`, which takes ANSI paths on Windows and knows nothing
+// about virtual paths. Both the glTF file and its external buffers go through the VFS.
+cgltf_result readCgltfFile(const cgltf_memory_options* memory,
+                           const cgltf_file_options* /*file*/, const char* path,
+                           cgltf_size* size, void** data) {
+  std::vector<uint8> bytes;
+  if (!GetVirtualFileSystem().readFile(path, bytes)) {
+    return cgltf_result_file_not_found;
+  }
+  // External buffers request their byteLength, which may be shorter than the file.
+  const cgltf_size requested = size ? *size : 0;
+  if (requested > bytes.size()) {
+    return cgltf_result_io_error;
+  }
+  const cgltf_size count = requested ? requested : bytes.size();
+
+  void* out = memory->alloc_func ? memory->alloc_func(memory->user_data, count ? count : 1)
+                                 : std::malloc(count ? count : 1);
+  if (!out) {
+    return cgltf_result_out_of_memory;
+  }
+  std::memcpy(out, bytes.data(), count);
+  if (size) {
+    *size = count;
+  }
+  if (data) {
+    *data = out;
+  }
+  return cgltf_result_success;
+}
+
+void releaseCgltfFile(const cgltf_memory_options* memory,
+                      const cgltf_file_options* /*file*/, void* data) {
+  if (memory->free_func) {
+    memory->free_func(memory->user_data, data);
+  } else {
+    std::free(data);
+  }
+}
+
+cgltf_options makeCgltfOptions() {
+  cgltf_options options{};
+  options.file.read = &readCgltfFile;
+  options.file.release = &releaseCgltfFile;
+  return options;
+}
 
 std::string getDirectory(const char* path) {
   const std::string_view view(path);
@@ -543,7 +592,7 @@ bool importParsed(const cgltf_options& options, cgltf_data* data, const char* pa
 
 bool importGltf(const char* path, const GltfImportOptions& options,
                 GltfImportResult& out) {
-  const cgltf_options cgltf_opts{};
+  const cgltf_options cgltf_opts = makeCgltfOptions();
   cgltf_data* data = nullptr;
   const cgltf_result result = cgltf_parse_file(&cgltf_opts, path, &data);
   if (result != cgltf_result_success) {
@@ -559,7 +608,7 @@ bool importGltfFromMemory(Span<const uint8> bytes, const char* path,
   if (!path) {
     path = "";
   }
-  const cgltf_options cgltf_opts{};
+  const cgltf_options cgltf_opts = makeCgltfOptions();
   cgltf_data* data = nullptr;
   const cgltf_result result = cgltf_parse(&cgltf_opts, bytes.data(), bytes.size(), &data);
   if (result != cgltf_result_success) {

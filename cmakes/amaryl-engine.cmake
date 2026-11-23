@@ -13,12 +13,17 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/input_system.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_importer.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_manager.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/material_asset.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/mesh_asset.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/scene_asset.h
 
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/asset_importer.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/mesh_asset.cpp
+
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/project/project.h
+
+  ${AMARYL_ENGINE_SOURCE_ROOT}/project/project.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/gpu_scene.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/gpu_scene.shared.h
@@ -76,4 +81,12 @@ target_link_libraries(${TARGET}
   SDL3::SDL3
   cgltf
   PRIVATE
-  meshoptimizer)
+  meshoptimizer
+  simdjson)
+
+# Editor-only data changes the layout of engine types (e.g. `Asset`), so the definition
+# is PUBLIC: the engine and every target using its headers must agree.
+option(AMARYL_EDITOR "Build the engine with the editor-only data" ON)
+target_compile_definitions(${TARGET}
+  PUBLIC
+  AMARYL_EDITOR=$<BOOL:${AMARYL_EDITOR}>)

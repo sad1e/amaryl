@@ -46,6 +46,9 @@ struct App {
 
  protected:
   void setMinimumLogicalSize(float width, float height);
+  // Mounts engine:// (`<exe>/engine/`) and user:// (the SDL pref path) before the engine
+  // is initialized. Override to mount project:// and cache://.
+  virtual bool mountFileSystem();
   virtual bool prepareFrame(float delta_time) { return true; }
   virtual bool renderFrame(float delta_time);
 

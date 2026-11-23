@@ -5,12 +5,12 @@
 # `-fvk-use-entrypoint-name` so they match the names declared in
 # `amaryl/nrhi/definitions.h` (`kVertexEntryName`, `kFragmentEntryName`).
 #
-# The compiled modules are written next to the runtime binaries
-# (`out/<preset>/shaders/`) and loaded relative to the executable directory at runtime
-# (see `ShaderLoader` / `DeferredRenderer`).
+# The compiled modules are written to the engine content directory next to the runtime
+# binaries (`out/<preset>/engine/shaders/`) and loaded through the virtual file system as
+# `engine://shaders/<name>.<stage>.spv` (see `DeferredRenderer`).
 
 set(AMARYL_SHADER_SOURCE_DIR ${AMARYL_ROOT}/shaders)
-set(AMARYL_SHADER_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders)
+set(AMARYL_SHADER_OUTPUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/engine/shaders)
 file(MAKE_DIRECTORY ${AMARYL_SHADER_OUTPUT_DIR})
 
 # Entry point name -> SPIR-V stage suffix. Order must be kept in sync.

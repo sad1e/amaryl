@@ -4,6 +4,7 @@
 
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_scancode.h"
+#include "amaryl/core/filesystem/vfs.h"
 #include "amaryl/engine/engine.h"
 
 namespace amaryl {
@@ -29,6 +30,11 @@ bool App::initialize(const AppInitInfo& info) {
   }
 
   name_ = info.name;
+  if (!mountFileSystem()) {
+    ShowErrorMessageBox("b2 initialization failed", "Failed to mount the engine content.");
+    return false;
+  }
+
   SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN |
                           SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN;
   window_ = SDL_CreateWindow(
@@ -81,8 +87,38 @@ void App::shutdown() {
     SDL_DestroyWindow(window_);
     window_ = nullptr;
   }
+  VirtualFileSystem& vfs = GetVirtualFileSystem();
+  vfs.unmount(kEngineScheme);
+  vfs.unmount(kUserScheme);
+
   initialized_ = false;
   metrics_ = {};
+}
+
+bool App::mountFileSystem() {
+  VirtualFileSystem& vfs = GetVirtualFileSystem();
+  vfs.unmount(kEngineScheme);
+  vfs.unmount(kUserScheme);
+
+  // UTF-8 with a trailing separator, owned by SDL.
+  const char* base_path = SDL_GetBasePath();
+  if (!base_path) {
+    ALOGE("SDL_GetBasePath failed: %s", SDL_GetError());
+    return false;
+  }
+  const std::string engine_root = std::string(base_path) + "engine";
+  if (!vfs.mount(kEngineScheme, std::make_unique<DirectorySource>(engine_root))) {
+    return false;
+  }
+
+  char* pref_path = SDL_GetPrefPath("amaryl", name_.c_str());
+  if (pref_path) {
+    vfs.mount(kUserScheme, std::make_unique<DirectorySource>(pref_path, true));
+    SDL_free(pref_path);
+  } else {
+    ALOGW("user:// is not mounted, SDL_GetPrefPath failed: %s", SDL_GetError());
+  }
+  return true;
 }
 
 bool App::refreshWindowMetrics() {

@@ -13,7 +13,8 @@ struct GltfImageDesc {
   // Index in the glTF images.
   uint32 index = 0;
   std::string name;
-  // UTF-8 path of an external image, relative uris are resolved against the glTF file.
+  // UTF-8 path of an external image, relative uris are resolved against the glTF file
+  // (a virtual path when the glTF path is virtual).
   std::string path;
   // Embedded image (GLB buffer view or data uri), only valid during the callback.
   Span<const uint8> data;
@@ -55,6 +56,8 @@ struct GltfImportResult {
 // file. Primitives become mesh sections and only TEXCOORD_0 is kept. Skins and morph
 // targets are ignored (bind pose), non-triangle primitives are skipped. Returns false and
 // leaves `out` untouched when the file cannot be loaded.
+// `path` is a virtual path ("project://models/a.gltf") or a native UTF-8 path, the file
+// and its external buffers are read through the virtual file system.
 ENGINE_API bool importGltf(const char* path, const GltfImportOptions& options,
                            GltfImportResult& out);
 // `path` resolves the relative uris of external buffers and images, it may be empty.

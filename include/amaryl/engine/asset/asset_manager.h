@@ -2,6 +2,7 @@
 
 #include "amaryl/core/uuid.h"
 #include "amaryl/engine/asset/asset_importer.h"
+#include "amaryl/engine/common.h"
 
 namespace amaryl {
 
@@ -15,7 +16,7 @@ struct Asset {
   Uuid uuid;
 
 #if AMARYL_EDITOR
-  const char debug_name_[kMaxAssetDebugName];
+  char debug_name_[kMaxAssetDebugName]{};
 #endif
 };
 

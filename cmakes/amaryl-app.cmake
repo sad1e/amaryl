@@ -4,6 +4,13 @@ set(TARGET_EDITOR amaryl-editor)
 set(AMARYL_APP_INCLUDE_ROOT ${AMARYL_INCLUDE_ROOT}/amaryl/app)
 set(AMARYL_APP_SOURCE_ROOT ${AMARYL_SOURCE_ROOT}/app)
 
+# Embeds the application manifest (UTF-8 active code page) into a Windows executable.
+function(amaryl_add_windows_manifest target)
+  if(WIN32)
+    target_sources(${target} PRIVATE ${AMARYL_SOURCE_ROOT}/app/amaryl.manifest)
+  endif()
+endfunction()
+
 set(AMARYL_APP_SOURCES
   ${AMARYL_APP_INCLUDE_ROOT}/app.h
   ${AMARYL_APP_SOURCE_ROOT}/app.cpp
@@ -27,9 +34,10 @@ target_link_libraries(${TARGET_EDITOR}
 target_compile_definitions(${TARGET_EDITOR}
   PUBLIC
   SDL_MAIN_USE_CALLBACKS)
+amaryl_add_windows_manifest(${TARGET_EDITOR})
 amaryl_inject_mimalloc(${TARGET_EDITOR})
 
-# Compiled Slang shaders must be present next to the executable at runtime.
+# Compiled Slang shaders must be present in `engine/shaders/` next to the executable.
 if(TARGET amaryl-shaders)
   add_dependencies(${TARGET_EDITOR} amaryl-shaders)
 endif()

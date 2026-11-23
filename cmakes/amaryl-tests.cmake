@@ -28,6 +28,15 @@ if(BUILD_TESTING)
 
     add_test(NAME amaryl-uuid COMMAND amaryl-uuid-test)
 
+    add_executable(amaryl-vfs-test
+        ${AMARYL_ROOT}/tests/core/vfs_test.cpp
+    )
+
+    target_link_libraries(amaryl-vfs-test PRIVATE amaryl-core)
+    target_include_directories(amaryl-vfs-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-vfs COMMAND amaryl-vfs-test)
+
     add_executable(amaryl-scene-graph-test
         ${AMARYL_ROOT}/tests/engine/scene_graph_test.cpp
     )
@@ -81,4 +90,21 @@ if(BUILD_TESTING)
     target_include_directories(amaryl-camera-test PRIVATE ${AMARYL_ROOT}/tests)
 
     add_test(NAME amaryl-camera COMMAND amaryl-camera-test)
+
+    add_executable(amaryl-project-test
+        ${AMARYL_ROOT}/tests/engine/project_test.cpp
+    )
+
+    target_link_libraries(amaryl-project-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-project-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-project COMMAND amaryl-project-test)
+
+    foreach(test_target
+        amaryl-math-test amaryl-allocator-test amaryl-uuid-test amaryl-vfs-test
+        amaryl-scene-graph-test amaryl-mesh-asset-test amaryl-gpu-scene-test
+        amaryl-gltf-import-test amaryl-entity-test amaryl-camera-test
+        amaryl-project-test)
+        amaryl_add_windows_manifest(${test_target})
+    endforeach()
 endif()

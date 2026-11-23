@@ -12,7 +12,8 @@ namespace amaryl {
 // Minimal helpers for loading precompiled SPIR-V shader modules produced by the
 // `amaryl-shaders` CMake target (see `cmakes/amaryl-shaders.cmake`).
 struct ENGINE_API ShaderLoader {
-  // Reads the whole file at `path` into `out_bytes`. Returns false on failure.
+  // Reads the whole non-empty file at `path` into `out_bytes`. `path` is a virtual path
+  // ("engine://shaders/x.spv") or a native UTF-8 path. Returns false on failure.
   static bool readBinaryFile(const std::string& path, std::vector<uint8>& out_bytes);
 
   // Reads the SPIR-V module at `path` and creates a shader module. Returns an empty

@@ -7,10 +7,31 @@
 #include <cstdlib>
 
 #include "amaryl/app/app.h"
+#include "amaryl/core/filesystem/vfs.h"
+
+namespace amaryl {
+
+bool EditorApp::mountFileSystem() {
+  if (!App::mountFileSystem()) {
+    return false;
+  }
+  if (project) {
+    MountProject(*project);
+    ALOGI("Project '%s' at '%s'", project->name.c_str(), project->root_path.c_str());
+  }
+  return true;
+}
+
+void EditorApp::shutdown() {
+  UnmountProject();
+  App::shutdown();
+}
+
+}  // namespace amaryl
 
 namespace {
 
-std::unique_ptr<amaryl::App> app;
+std::unique_ptr<amaryl::EditorApp> app;
 uint32 frame_limit = 0;
 uint32 frame_count = 0;
 std::string screenshot_path;
@@ -21,18 +42,31 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
   amaryl::InitializeLogger();
 
   bool hidden = false;
+  std::string project_path;
   for (int index = 1; index < argc; ++index) {
-    if (std::string_view(argv[index]) == "--frames" && index + 1 < argc) {
+    const std::string_view arg(argv[index]);
+    if (arg == "--frames" && index + 1 < argc) {
       frame_limit = static_cast<uint32>(std::strtoul(argv[++index], nullptr, 10));
-    } else if (std::string_view(argv[index]) == "--screenshot" && index + 1 < argc) {
+    } else if (arg == "--screenshot" && index + 1 < argc) {
       screenshot_path = argv[++index];
-    } else if (std::string_view(argv[index]) == "--hidden") {
+    } else if (arg == "--hidden") {
       hidden = true;
+    } else if (arg == "--project" && index + 1 < argc) {
+      project_path = argv[++index];
+    } else if (amaryl::IsProjectFile(arg)) {
+      // Opening a .amarylproject from the explorer passes its path alone.
+      project_path = arg;
     }
   }
 
-  app = std::make_unique<amaryl::App>();
-  if (!app->initialize({.name = "App",
+  app = std::make_unique<amaryl::EditorApp>();
+  if (!project_path.empty()) {
+    app->project = amaryl::LoadProject(project_path);
+    if (!app->project) {
+      return SDL_APP_FAILURE;
+    }
+  }
+  if (!app->initialize({.name = "Amaryl Editor",
         .width = amaryl::kDefaultWidth,
         .height = amaryl::kDefaultHeight,
         .hidden = hidden})) {
