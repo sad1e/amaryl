@@ -1,5 +1,6 @@
 #pragma once
 
+#include "amaryl/engine/render/imgui_renderer.h"
 #include "amaryl/engine/render/texture.h"
 #include "amaryl/nrhi/nrhi.h"
 
@@ -38,6 +39,11 @@ struct ENGINE_API DeferredRenderer final {
 
   void renderGBuffersPass();
   void renderPostProcessPass();
+  // Draws the ImGui draw data over the swapchain image, after the post process pass.
+  // Does nothing when `draw_data` is null or the ImGui renderer is not initialized.
+  void renderImGuiPass(ImDrawData* draw_data);
+
+  ImGuiRenderer& getImGuiRenderer() { return imgui_renderer_; }
 
  private:
   // Creates the full-screen "debug lighting only" pipeline together with the small
@@ -60,6 +66,8 @@ struct ENGINE_API DeferredRenderer final {
   Holder<TextureHandle> debug_texture_;
   Holder<SamplerHandle> debug_sampler_;
   Holder<BufferHandle> debug_buffer_;
+
+  ImGuiRenderer imgui_renderer_;
 };
 
 }  // namespace amaryl

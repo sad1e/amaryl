@@ -56,7 +56,19 @@ void Engine::update(float delta_time) {
   world_.entities.updateComponents();
 }
 
-bool Engine::render() {
+bool Engine::initImGui() {
+  ASSERT(rhi_ != nullptr, "Engine is not initialized");
+  return renderer_.getImGuiRenderer().init(rhi_.get());
+}
+
+void Engine::shutdownImGui() {
+  if (!rhi_) {
+    return;
+  }
+  renderer_.getImGuiRenderer().shutdown();
+}
+
+bool Engine::render(ImDrawData* imgui_draw_data) {
   if (!rhi_) {
     return false;
   }
@@ -69,6 +81,7 @@ bool Engine::render() {
 
   renderer_.renderGBuffersPass();
   renderer_.renderPostProcessPass();
+  renderer_.renderImGuiPass(imgui_draw_data);
   renderer_.endFrame();
   return true;
 }

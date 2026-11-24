@@ -32,6 +32,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/range_allocator.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/render_scene.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/deferred_renderer.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/render/imgui_renderer.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/shader_loader.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/texture.h
 
@@ -40,6 +41,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/range_allocator.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/render_scene.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/deferred_renderer.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/imgui_renderer.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/scene_render_targets.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/shader_loader.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/texture.cpp
@@ -80,6 +82,7 @@ target_link_libraries(${TARGET}
   pystring
   SDL3::SDL3
   cgltf
+  imgui
   PRIVATE
   meshoptimizer
   simdjson)

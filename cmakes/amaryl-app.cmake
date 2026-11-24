@@ -19,21 +19,31 @@ set(AMARYL_APP_SOURCES
 add_executable(${TARGET_EDITOR}
   ${AMARYL_APP_INCLUDE_ROOT}/editor.h
   ${AMARYL_APP_SOURCE_ROOT}/editor.cpp
+  ${AMARYL_APP_SOURCE_ROOT}/editor_impl.cpp
+  ${AMARYL_3RDPARTY_ROOT}/imgui/backends/imgui_impl_sdl3.h
+  ${AMARYL_3RDPARTY_ROOT}/imgui/backends/imgui_impl_sdl3.cpp
   ${AMARYL_APP_SOURCES})
 
 target_include_directories(${TARGET_EDITOR}
   PUBLIC
-  ${AMARYL_INCLUDE_ROOT})
+  ${AMARYL_INCLUDE_ROOT}
+  PRIVATE
+  ${AMARYL_3RDPARTY_ROOT}/imgui/backends)
 target_link_libraries(${TARGET_EDITOR}
   PUBLIC
   amaryl-core
   amaryl-engine
   amaryl-nrhi
   SDL3::SDL3
-  plog::plog)
+  plog::plog
+  imgui)
 target_compile_definitions(${TARGET_EDITOR}
   PUBLIC
-  SDL_MAIN_USE_CALLBACKS)
+  SDL_MAIN_USE_CALLBACKS
+  # imgui_impl_sdl3 is compiled into the editor: IMGUI_IMPL_API must not inherit the
+  # dllimport of IMGUI_API.
+  PRIVATE
+  "IMGUI_IMPL_API=")
 amaryl_add_windows_manifest(${TARGET_EDITOR})
 amaryl_inject_mimalloc(${TARGET_EDITOR})
 

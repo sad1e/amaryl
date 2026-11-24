@@ -24,11 +24,17 @@ struct ENGINE_API Engine final {
   // Recreates the swapchain, a zero size is ignored (minimized window).
   void processResize(uint32 width, uint32 height);
 
+  // Registers the nrhi ImGui renderer backend into the current ImGui context.
+  bool initImGui();
+  // Must be called before the ImGui context is destroyed. Safe to call twice.
+  void shutdownImGui();
+
   // Game update of one frame.
   void update(float delta_time);
-  // Renders and presents one frame. Returns false on unrecoverable errors, a frame
-  // skipped because the swapchain is out of date is not an error.
-  bool render();
+  // Renders and presents one frame, `imgui_draw_data` (ImGui::GetDrawData()) is drawn
+  // over the scene when not null. Returns false on unrecoverable errors, a frame skipped
+  // because the swapchain is out of date is not an error.
+  bool render(ImDrawData* imgui_draw_data = nullptr);
 
   IContext* getRHI() const { return rhi_.get(); }
   World& getWorld() { return world_; }

@@ -9,26 +9,6 @@
 #include "amaryl/app/app.h"
 #include "amaryl/core/filesystem/vfs.h"
 
-namespace amaryl {
-
-bool EditorApp::mountFileSystem() {
-  if (!App::mountFileSystem()) {
-    return false;
-  }
-  if (project) {
-    MountProject(*project);
-    ALOGI("Project '%s' at '%s'", project->name.c_str(), project->root_path.c_str());
-  }
-  return true;
-}
-
-void EditorApp::shutdown() {
-  UnmountProject();
-  App::shutdown();
-}
-
-}  // namespace amaryl
-
 namespace {
 
 std::unique_ptr<amaryl::EditorApp> app;

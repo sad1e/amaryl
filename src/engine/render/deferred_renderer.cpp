@@ -45,6 +45,7 @@ void DeferredRenderer::init(Engine* engine) {
 
 void DeferredRenderer::shutdown() {
   ASSERT(commands_ == nullptr, "Shutdown inside a frame");
+  imgui_renderer_.shutdown();
   shutdownDebugLightingOnly();
   rhi_ = nullptr;
 }
@@ -183,6 +184,14 @@ void DeferredRenderer::renderPostProcessPass() {
   commands_->cmdDraw(3);
 
   commands_->cmdEndRendering();
+}
+
+void DeferredRenderer::renderImGuiPass(ImDrawData* draw_data) {
+  ASSERT(commands_ != nullptr);
+  if (!draw_data || !imgui_renderer_.isInitialized()) {
+    return;
+  }
+  imgui_renderer_.render(*commands_, swapchain_texture_, draw_data);
 }
 
 }  // namespace amaryl
