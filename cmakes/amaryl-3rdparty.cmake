@@ -61,3 +61,6 @@ add_subdirectory(${AMARYL_3RDPARTY_ROOT}/meshoptimizer)
 
 # simdjson
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/simdjson)
+
+# imgui
+add_subdirectory(${AMARYL_3RDPARTY_ROOT}/imgui)
