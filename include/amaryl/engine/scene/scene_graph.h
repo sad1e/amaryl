@@ -15,12 +15,11 @@ namespace amaryl {
 //   returns the result of the last `update()`. Use `computeWorldImmediate()` for reads
 //   that cannot wait (cameras, sockets).
 // - Nodes are stored densely in parent-before-child order so `update()` is one linear
-// pass.
+//   pass.
 //   Dense indices are internal and change on `setParent()` / `destroy()`, handles do not.
 // - Change tracking uses monotonically increasing versions instead of dirty bits, so
-// every
-//   consumer independently asks "what changed since version N" and nothing has to be
-//   reset.
+//   every consumer independently asks "what changed since version N" and nothing has to
+//   be reset.
 // - Destroyed handles are kept in a log for at least `kDestroyLogRetention` updates so
 //   consumers can release what they attached to them, see `forEachDestroyedSince()`.
 // - Writes are single threaded. Reads are safe from any thread between `update()` and the
@@ -40,7 +39,7 @@ struct ENGINE_API SceneGraph final {
 
   TransformHandle create(const TransformDesc& desc = {});
   void destroy(TransformHandle handle,
-               ETransformDestroyMode mode = ETransformDestroyMode::Recursive);
+    ETransformDestroyMode mode = ETransformDestroyMode::Recursive);
   bool isAlive(TransformHandle handle) const;
   uint32 getCount() const { return static_cast<uint32>(dense_handles_.size()); }
 
@@ -48,7 +47,7 @@ struct ENGINE_API SceneGraph final {
 
   // An empty `parent` detaches `child` to the root.
   void setParent(TransformHandle child, TransformHandle parent,
-                 EAttachRule rule = EAttachRule::KeepWorld);
+    EAttachRule rule = EAttachRule::KeepWorld);
   TransformHandle getParent(TransformHandle handle) const;
   TransformHandle getFirstChild(TransformHandle handle) const;
   TransformHandle getNextSibling(TransformHandle handle) const;
@@ -60,16 +59,16 @@ struct ENGINE_API SceneGraph final {
   void setLocalPosition(TransformHandle handle, Vec3Arg position);
   void setLocalRotation(TransformHandle handle, QuatArg rotation);
   void setLocalScale(TransformHandle handle, Vec3Arg scale);
-  void setLocalTRS(TransformHandle handle, Vec3Arg position, QuatArg rotation,
-                   Vec3Arg scale);
+  void setLocalTRS(
+    TransformHandle handle, Vec3Arg position, QuatArg rotation, Vec3Arg scale);
 
   Vec3 getLocalPosition(TransformHandle handle) const;
   Quat getLocalRotation(TransformHandle handle) const;
   Vec3 getLocalScale(TransformHandle handle) const;
 
   // Converted to local space with the parent's immediately computed world transform.
-  void setWorldTRS(TransformHandle handle, Vec3Arg position, QuatArg rotation,
-                   Vec3Arg scale);
+  void setWorldTRS(
+    TransformHandle handle, Vec3Arg position, QuatArg rotation, Vec3Arg scale);
 
   // Marks a discontinuity (spawn, respawn, camera cut): consumers must not interpolate or
   // generate motion vectors across it. Propagated to descendants by `update()`.
@@ -182,12 +181,12 @@ bool SceneGraph::forEachDestroyedSince(uint32 since_version, Fn&& fn) const {
     return false;
   }
 
-  const auto begin = std::upper_bound(destroyed_versions_.begin(),
-                                      destroyed_versions_.end(), since_version);
+  const auto begin = std::upper_bound(
+    destroyed_versions_.begin(), destroyed_versions_.end(), since_version);
   const size_t count = destroyed_versions_.size();
   // Entries stamped with the pending version are published by the next `update()`.
   for (size_t i = static_cast<size_t>(begin - destroyed_versions_.begin());
-       i < count && destroyed_versions_[i] <= world_version_; ++i) {
+    i < count && destroyed_versions_[i] <= world_version_; ++i) {
     fn(destroyed_handles_[i]);
   }
   return true;
