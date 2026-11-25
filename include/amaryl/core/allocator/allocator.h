@@ -18,8 +18,8 @@ inline constexpr size_t kDefaultAlignment = DEFAULT_ALIGNMENT;
 //
 // The interface is modelled on the C++ standard library's `Allocator` named
 // requirements: the raw `Allocate`/`Deallocate` map to `allocate`/`deallocate`,
-// and the `StlAllocator<T, TAllocator>` adapter exposes any derived allocator to
-// STL containers.
+// and the `StlAllocator<T>` adapter exposes any derived allocator to STL
+// containers.
 //
 // Implementations are intentionally not thread-safe unless documented.
 class CORE_API IAllocator {
@@ -86,14 +86,24 @@ class CORE_API MimallocAllocator final : public IAllocator {
 // Adapter exposing an `IAllocator`-derived allocator through the standard
 // `Allocator` interface so it can back STL containers.
 //
-//   ArenaAllocator arena;
-//   std::vector<int, StlAllocator<int, ArenaAllocator>> values(
-//       StlAllocator<int, ArenaAllocator>(arena));
+// By default it forwards to any `IAllocator` (through virtual dispatch) and
+// converts implicitly from an allocator reference, so it reads like
+// `std::allocator`:
 //
-// The adapter is stateful (it refers to a concrete allocator instance), so it
-// must be constructed from a live allocator; a default-constructed adapter is
-// only usable as a copy source for a container that already owns one.
-template <typename T, typename TAllocator>
+//   BumpAllocator bump(32);
+//   std::vector<int, StlAllocator<int>> values(bump);
+//
+//   std::vector<int, StlAllocator<int>> defaults;  // uses DefaultAllocator()
+//
+// Name the concrete allocator type to bind to it directly instead:
+//
+//   std::vector<int, StlAllocator<int, ArenaAllocator>> values(arena);
+//
+// The adapter is stateful (it refers to an allocator instance). A
+// default-constructed `StlAllocator<T>` uses `DefaultAllocator()`; with an
+// explicit `TAllocator` it is null and only usable as a copy source for a
+// container that already owns one.
+template <typename T, typename TAllocator = IAllocator>
 class StlAllocator {
  public:
   using value_type = T;
@@ -112,7 +122,11 @@ class StlAllocator {
     using other = StlAllocator<U, TAllocator>;
   };
 
-  StlAllocator() noexcept = default;
+  StlAllocator() noexcept {
+    if constexpr (std::is_same_v<TAllocator, IAllocator>) {
+      allocator_ = &DefaultAllocator();
+    }
+  }
   StlAllocator(TAllocator& allocator) noexcept : allocator_(&allocator) {}
 
   template <typename U>

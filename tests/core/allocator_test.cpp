@@ -1,11 +1,11 @@
 #include "amaryl/core/allocator/allocator.h"
-#include "amaryl/core/allocator/arena_allocator.h"
-#include "amaryl/core/allocator/bump_allocator.h"
-#include "amaryl/core/allocator/pool_allocator.h"
 
 #include <cstdint>
 #include <vector>
 
+#include "amaryl/core/allocator/arena_allocator.h"
+#include "amaryl/core/allocator/bump_allocator.h"
+#include "amaryl/core/allocator/pool_allocator.h"
 #include "boost/ut.hpp"
 
 using namespace amaryl;
@@ -134,6 +134,13 @@ int main() {
     for (int i = 0; i < 16; ++i) {
       expect(values[static_cast<size_t>(i)] == i);
     }
+  };
+
+  "stl container over bump allocator"_test = [] {
+    BumpAllocator bump(32);
+    StlAllocator<int, BumpAllocator> stl_allocator(bump);
+
+    std::vector<int, StlAllocator<int, BumpAllocator>> values(stl_allocator);
   };
 
   return 0;
