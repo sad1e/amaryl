@@ -2,15 +2,31 @@
 
 namespace amaryl {
 
+namespace {
+
+template <typename Fn>
+void forEachTexture(const MaterialAsset& asset, Fn&& fn) {
+  for (const TextureDescriptorIndex texture :
+       {asset.baseColorTexture, asset.metallicRoughnessTexture, asset.normalTexture,
+        asset.occlusionTexture, asset.emissiveTexture}) {
+    if (texture.value != 0) {
+      fn(texture);
+    }
+  }
+}
+
+}  // namespace
+
 MaterialRegistry::MaterialRegistry() {
   MaterialAsset asset;
   asset.name = "default";
   default_ = create(asset);
 }
 
-MaterialRegistry::~MaterialRegistry() = default;
+MaterialRegistry::~MaterialRegistry() { setTextureReferences(nullptr); }
 
 MaterialHandle MaterialRegistry::create(const MaterialAsset& asset) {
+  addTextureRefs(asset);
   const MaterialHandle handle = pool_.create(Record{asset});
   markDirty(handle);
   return handle;
@@ -23,13 +39,18 @@ MaterialHandle MaterialRegistry::clone(MaterialHandle source) {
 }
 
 void MaterialRegistry::update(MaterialHandle handle, const MaterialAsset& asset) {
-  getRecord(handle).asset = asset;
+  Record& record = getRecord(handle);
+  // References first, a texture kept by the update must not reach 0.
+  addTextureRefs(asset);
+  releaseTextureRefs(record.asset);
+  record.asset = asset;
   markDirty(handle);
 }
 
 void MaterialRegistry::destroy(MaterialHandle handle) {
   ASSERT(handle != default_, "The default material cannot be destroyed");
   ASSERT(getRecord(handle).refCount == 0, "Destroying a material in use");
+  releaseTextureRefs(getRecord(handle).asset);
   pool_.destroy(handle);
 }
 
@@ -52,6 +73,23 @@ void MaterialRegistry::release(MaterialHandle handle) {
 
 uint32 MaterialRegistry::getRefCount(MaterialHandle handle) const {
   return getRecord(handle).refCount;
+}
+
+void MaterialRegistry::setTextureReferences(ITextureReferences* references) {
+  if (references == texture_references_) {
+    return;
+  }
+  // Destroyed slots are reset to Record{} and have no texture.
+  if (references) {
+    pool_.for_each([references](const Record& record) {
+      forEachTexture(record.asset,
+                     [references](TextureDescriptorIndex t) { references->addRef(t); });
+    });
+  }
+  if (texture_references_) {
+    pool_.for_each([this](const Record& record) { releaseTextureRefs(record.asset); });
+  }
+  texture_references_ = references;
 }
 
 void MaterialRegistry::flushUploads(GpuSceneUploads& uploads) {
@@ -82,6 +120,19 @@ void MaterialRegistry::markDirty(MaterialHandle handle) {
   if (!record.dirty) {
     record.dirty = true;
     dirty_slots_.push_back(handle.index());
+  }
+}
+
+void MaterialRegistry::addTextureRefs(const MaterialAsset& asset) {
+  if (texture_references_) {
+    forEachTexture(asset, [this](TextureDescriptorIndex t) { texture_references_->addRef(t); });
+  }
+}
+
+void MaterialRegistry::releaseTextureRefs(const MaterialAsset& asset) {
+  if (texture_references_) {
+    forEachTexture(asset,
+                   [this](TextureDescriptorIndex t) { texture_references_->release(t); });
   }
 }
 

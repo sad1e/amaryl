@@ -14,11 +14,13 @@ set(AMARYL_ENGINE_SOURCES
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_importer.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_manager.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/image_decoder.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/material_asset.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/mesh_asset.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/scene_asset.h
 
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/asset_importer.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/asset/image_decoder.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/mesh_asset.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/project/project.h
@@ -27,6 +29,7 @@ set(AMARYL_ENGINE_SOURCES
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/gpu_scene.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/gpu_scene.shared.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/render/gpu_scene_buffers.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/material_registry.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/mesh_registry.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/range_allocator.h
@@ -35,7 +38,9 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/imgui_renderer.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/shader_loader.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/render/texture.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/render/texture_registry.h
 
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/gpu_scene_buffers.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/material_registry.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/mesh_registry.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/range_allocator.cpp
@@ -45,12 +50,14 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/scene_render_targets.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/shader_loader.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/render/texture.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/render/texture_registry.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/camera.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/common.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/entity.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/light.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/model.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/model_library.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/scene_graph.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/scene/scene_loader.h
 
@@ -58,6 +65,7 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/entity.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/light.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/model.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/scene/model_library.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/scene_graph.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/scene/scene_loader.cpp
 )
@@ -85,7 +93,8 @@ target_link_libraries(${TARGET}
   imgui
   PRIVATE
   meshoptimizer
-  simdjson)
+  simdjson
+  stb)
 
 # Editor-only data changes the layout of engine types (e.g. `Asset`), so the definition
 # is PUBLIC: the engine and every target using its headers must agree.

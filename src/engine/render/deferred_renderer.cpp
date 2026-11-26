@@ -40,6 +40,7 @@ std::string resolveShaderPath(const char* relative_path) {
 void DeferredRenderer::init(Engine* engine) {
   ASSERT(engine != nullptr && engine->getRHI() != nullptr);
   rhi_ = engine->getRHI();
+  gpu_scene_.init(rhi_);
   initDebugLightingOnly();
 }
 
@@ -47,6 +48,7 @@ void DeferredRenderer::shutdown() {
   ASSERT(commands_ == nullptr, "Shutdown inside a frame");
   imgui_renderer_.shutdown();
   shutdownDebugLightingOnly();
+  gpu_scene_.shutdown();
   rhi_ = nullptr;
 }
 
@@ -156,9 +158,14 @@ bool DeferredRenderer::beginFrame() {
 void DeferredRenderer::endFrame() {
   ASSERT(commands_ != nullptr);
 
-  rhi_->submit(*commands_, swapchain_texture_);
+  gpu_scene_.onSubmitted(rhi_->submit(*commands_, swapchain_texture_));
   commands_ = nullptr;
   swapchain_texture_ = {};
+}
+
+void DeferredRenderer::uploadScene(const GpuSceneUploads& uploads) {
+  ASSERT(commands_ != nullptr);
+  gpu_scene_.upload(*commands_, uploads);
 }
 
 void DeferredRenderer::renderGBuffersPass() {}

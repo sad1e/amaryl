@@ -346,7 +346,7 @@ void CommandBuffer::cmdDispatch(const Dimensions& group_count, const Dependencie
 
   for (size_t i = 0; i < deps.buffers.size(); ++i) {
     [[maybe_unused]] const VulkanBuffer* buffer = ctx_->buffer_pool_.get(deps.buffers[i]);
-    ASSERT(buffer->usage_flags_ & VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT,
+    ASSERT(buffer->usage_flags_ & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
            TEXT("The buffer used by `cmdDispatch` should be specified to "
                 "EBufferUsage::Storage"));
 
@@ -373,7 +373,7 @@ void CommandBuffer::cmdDispatchIndirect(BufferHandle indirect_buffer,
 
   for (size_t i = 0; i < deps.buffers.size(); ++i) {
     [[maybe_unused]] const VulkanBuffer* buffer = ctx_->buffer_pool_.get(deps.buffers[i]);
-    ASSERT(buffer->usage_flags_ & VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT,
+    ASSERT(buffer->usage_flags_ & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
            TEXT("The buffer used by `cmdDispatch` should be specified to "
                 "EBufferUsage::Storage"));
 

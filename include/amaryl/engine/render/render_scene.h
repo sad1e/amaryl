@@ -53,6 +53,8 @@ struct ENGINE_API RenderScene final {
   void setMaterial(RenderProxyHandle handle, uint32 section, MaterialHandle material);
   void setCastShadow(RenderProxyHandle handle, bool cast_shadow);
   static uint32 getInstanceId(RenderProxyHandle handle) { return handle.index(); }
+  // Live proxy of a GpuInstanceId (e.g. read back by GPU picking), empty otherwise.
+  RenderProxyHandle getProxyByInstanceId(uint32 instance_id) const;
 
   // Destroys the proxies of destroyed transforms and queues the transforms that changed
   // since the last sync. Call after `SceneGraph::update()`.

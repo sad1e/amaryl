@@ -33,6 +33,7 @@ target_link_libraries(${TARGET_EDITOR}
   PUBLIC
   amaryl-core
   amaryl-engine
+  amaryl-editor-core
   amaryl-nrhi
   SDL3::SDL3
   plog::plog

@@ -355,14 +355,25 @@ int main() {
     GltfImportOptions gltf_import_options;
     GltfImportResult result;
 
-    importGltf("../../EngineAssets/Bistro/bistro.gltf", gltf_import_options, result);
+    importGltf(
+      "../../EngineAssets/RTXGI-Assets/Bistro/bistro.gltf", gltf_import_options, result);
 
+    printf("---> first 10 nodes:\n");
     for (int32 i = 0; i < result.scene.nodes.size() && i < 10; ++i) {
       const SceneNodeAsset& node = result.scene.nodes[i];
       printf("%s:\n\tparent: %d\n\tposition: %.3f, %.3f, %.3f\n\tmesh: %d\n",
         node.name.c_str(), node.parent, node.position.GetX(), node.position.GetY(),
         node.position.GetZ(), node.mesh);
     }
+
+    printf("---> first 10 meshes:\n");
+    for (int32 i = 0; i < result.model.meshes.size() && i < 10; ++i) {
+      const ModelMesh& mesh = result.model.meshes[i];
+      printf("%s:\n\tposition size: %zu\n", mesh.asset->name.c_str(),
+        mesh.asset->positions.size());
+    }
+
+    SceneGraph sg;
   };
 
   return 0;

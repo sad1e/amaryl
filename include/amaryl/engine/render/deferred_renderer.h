@@ -1,5 +1,6 @@
 #pragma once
 
+#include "amaryl/engine/render/gpu_scene_buffers.h"
 #include "amaryl/engine/render/imgui_renderer.h"
 #include "amaryl/engine/render/texture.h"
 #include "amaryl/nrhi/nrhi.h"
@@ -37,6 +38,8 @@ struct ENGINE_API DeferredRenderer final {
   // Submits the command buffer and presents the swapchain image.
   void endFrame();
 
+  // Records the GPU scene uploads of this frame, before the passes reading the scene.
+  void uploadScene(const GpuSceneUploads& uploads);
   void renderGBuffersPass();
   void renderPostProcessPass();
   // Draws the ImGui draw data over the swapchain image, after the post process pass.
@@ -44,6 +47,7 @@ struct ENGINE_API DeferredRenderer final {
   void renderImGuiPass(ImDrawData* draw_data);
 
   ImGuiRenderer& getImGuiRenderer() { return imgui_renderer_; }
+  const GpuSceneBuffers& getGpuScene() const { return gpu_scene_; }
 
  private:
   // Creates the full-screen "debug lighting only" pipeline together with the small
@@ -67,6 +71,7 @@ struct ENGINE_API DeferredRenderer final {
   Holder<SamplerHandle> debug_sampler_;
   Holder<BufferHandle> debug_buffer_;
 
+  GpuSceneBuffers gpu_scene_;
   ImGuiRenderer imgui_renderer_;
 };
 

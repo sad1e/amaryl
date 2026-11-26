@@ -1173,7 +1173,7 @@ Holder<TextureHandle> Context::createTextureView(TextureHandle texture,
 
 Holder<ComputePipelineHandle> Context::createComputePipeline(
   const ComputePipelineDesc& desc, Result* out_result) {
-  if (desc.smCompute.valid()) {
+  if (!desc.smCompute.valid()) {
     Result::setResult(
       out_result, Result::Code::ArgumentOutOfRange, "Missing compute shader");
     return {};

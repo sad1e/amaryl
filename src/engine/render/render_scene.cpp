@@ -110,6 +110,10 @@ bool RenderScene::isAlive(RenderProxyHandle handle) const {
          pool_.getHandle(handle.index()) == handle;
 }
 
+RenderProxyHandle RenderScene::getProxyByInstanceId(uint32 instance_id) const {
+  return isSlotAlive(instance_id) ? pool_.getHandle(instance_id) : RenderProxyHandle{};
+}
+
 TransformHandle RenderScene::getTransform(RenderProxyHandle handle) const {
   return getProxy(handle).transform;
 }

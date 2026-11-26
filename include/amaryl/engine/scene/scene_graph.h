@@ -24,7 +24,10 @@ namespace amaryl {
 //   consumers can release what they attached to them, see `forEachDestroyedSince()`.
 // - Writes are single threaded. Reads are safe from any thread between `update()` and the
 //   next write.
+// - The chunk is an accelerated structure for update and queries.
+//
 struct ENGINE_API SceneGraph final {
+  // The default chunk size.
   static constexpr uint32 kChunkSize = 64;
   static constexpr uint32 kInvalidIndex = 0xffffffffu;
   // Minimum number of `update()` calls a destroyed handle stays in the destroy log.

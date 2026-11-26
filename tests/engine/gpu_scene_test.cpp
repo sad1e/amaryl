@@ -19,27 +19,6 @@ namespace {
 
 constexpr uint32 kUnwritten = 0xcdcdcdcdu;
 
-uint32 getElementDwords(EGpuSceneBuffer buffer) {
-  switch (buffer) {
-    case EGpuSceneBuffer::Instances:
-      return sizeof(GpuInstance) / sizeof(uint32);
-    case EGpuSceneBuffer::Materials:
-      return sizeof(GpuMaterial) / sizeof(uint32);
-    case EGpuSceneBuffer::Meshes:
-      return sizeof(GpuMesh) / sizeof(uint32);
-    case EGpuSceneBuffer::MeshSections:
-      return sizeof(GpuMeshSection) / sizeof(uint32);
-    case EGpuSceneBuffer::Meshlets:
-      return sizeof(GpuMeshlet) / sizeof(uint32);
-    case EGpuSceneBuffer::VertexPositions:
-      return 3;
-    case EGpuSceneBuffer::VertexAttributes:
-      return GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS;
-    default:
-      return 1;
-  }
-}
-
 // Applies the uploads of a frame like the renderer: grows the buffers, runs the scatter
 // copies, then the transform updates.
 struct FakeGpu {
@@ -51,7 +30,7 @@ struct FakeGpu {
     for (uint32 b = 0; b < kGpuSceneBufferCount; ++b) {
       const auto id = static_cast<EGpuSceneBuffer>(b);
       std::vector<uint32>& buffer = buffers[b];
-      const size_t size = size_t{uploads.capacity(id)} * getElementDwords(id);
+      const size_t size = size_t{uploads.capacity(id)} * getGpuSceneElementDwords(id);
       if (buffer.size() < size) {
         buffer.resize(size, kUnwritten);
       }
@@ -60,14 +39,13 @@ struct FakeGpu {
       std::vector<std::pair<uint32, uint32>> ranges;
       for (const GpuScatterCopy& copy : queue.copies) {
         const bool valid =
-            copy.dwordCount != 0 &&
-            size_t{copy.srcOffset} + copy.dwordCount <= queue.payload.size() &&
-            size_t{copy.dstOffset} + copy.dwordCount <= size;
+          copy.dwordCount != 0 &&
+          size_t{copy.srcOffset} + copy.dwordCount <= queue.payload.size() &&
+          size_t{copy.dstOffset} + copy.dwordCount <= size;
         expect(valid) << "invalid scatter copy";
         if (valid) {
           std::memcpy(buffer.data() + copy.dstOffset,
-                      queue.payload.data() + copy.srcOffset,
-                      copy.dwordCount * sizeof(uint32));
+            queue.payload.data() + copy.srcOffset, copy.dwordCount * sizeof(uint32));
           ranges.emplace_back(copy.dstOffset, copy.dstOffset + copy.dwordCount);
         }
       }
@@ -168,14 +146,14 @@ std::shared_ptr<const MeshAsset> makeGrid(uint32 cells, uint32 sections) {
 // Reads the uploaded mesh back through its rebased offsets and compares it to `asset`.
 void expectMesh(const FakeGpu& gpu, MeshHandle handle, const MeshAsset& asset) {
   const GpuMesh mesh =
-      gpu.read<GpuMesh>(EGpuSceneBuffer::Meshes, MeshRegistry::getGpuIndex(handle));
+    gpu.read<GpuMesh>(EGpuSceneBuffer::Meshes, MeshRegistry::getGpuIndex(handle));
   expect(mesh.lodCount == asset.lods.size() && mesh.sectionCount == asset.sectionCount);
   expect(mesh.boundingSphere == asset.boundingSphere);
 
   bool vertices_match = true;
   for (uint32 v = 0; v < asset.getVertexCount(); ++v) {
     vertices_match &= gpu.read<float3>(EGpuSceneBuffer::VertexPositions,
-                                       mesh.baseVertex + v) == asset.positions[v];
+                        mesh.baseVertex + v) == asset.positions[v];
     for (uint32 k = 0; k < GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS; ++k) {
       const uint32 dword = (mesh.baseVertex + v) * GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS + k;
       vertices_match &= gpu.read<uint32>(EGpuSceneBuffer::VertexAttributes, dword) ==
@@ -193,14 +171,14 @@ void expectMesh(const FakeGpu& gpu, MeshHandle handle, const MeshAsset& asset) {
     bool sections_match = true;
     for (uint32 s = 0; s < asset.sectionCount; ++s) {
       const GpuMeshSection section = gpu.read<GpuMeshSection>(
-          EGpuSceneBuffer::MeshSections, gpu_lod.sectionOffset + s);
+        EGpuSceneBuffer::MeshSections, gpu_lod.sectionOffset + s);
       const GpuMeshSection& source = asset.sections[source_lod.sectionOffset + s];
       sections_match &= section.indexCount == source.indexCount &&
                         section.materialSlot == source.materialSlot;
       for (uint32 i = 0; i < source.indexCount; ++i) {
         sections_match &=
-            gpu.read<uint32>(EGpuSceneBuffer::Indices, section.firstIndex + i) ==
-            asset.indices[source.firstIndex + i];
+          gpu.read<uint32>(EGpuSceneBuffer::Indices, section.firstIndex + i) ==
+          asset.indices[source.firstIndex + i];
       }
     }
     expect(sections_match);
@@ -208,15 +186,15 @@ void expectMesh(const FakeGpu& gpu, MeshHandle handle, const MeshAsset& asset) {
     bool meshlets_match = true;
     for (uint32 m = 0; m < source_lod.meshletCount; ++m) {
       const GpuMeshlet meshlet =
-          gpu.read<GpuMeshlet>(EGpuSceneBuffer::Meshlets, gpu_lod.meshletOffset + m);
+        gpu.read<GpuMeshlet>(EGpuSceneBuffer::Meshlets, gpu_lod.meshletOffset + m);
       const GpuMeshlet& source = asset.meshlets[source_lod.meshletOffset + m];
       meshlets_match &= meshlet.packedCounts == source.packedCounts &&
                         meshlet.packedCone == source.packedCone &&
                         meshlet.boundingSphere == source.boundingSphere;
       for (uint32 v = 0; v < gpuMeshletVertexCount(source.packedCounts); ++v) {
-        meshlets_match &= gpu.read<uint32>(EGpuSceneBuffer::MeshletVertices,
-                                           meshlet.vertexOffset + v) ==
-                          asset.meshletVertices[source.vertexOffset + v];
+        meshlets_match &=
+          gpu.read<uint32>(EGpuSceneBuffer::MeshletVertices, meshlet.vertexOffset + v) ==
+          asset.meshletVertices[source.vertexOffset + v];
       }
       for (uint32 b = 0; b < gpuMeshletTriangleCount(source.packedCounts) * 3; ++b) {
         meshlets_match &= gpu.readMeshletTriangleByte(meshlet.triangleOffset + b) ==
@@ -246,13 +224,13 @@ struct SceneFixture {
   }
 
   GpuInstance getInstance(RenderProxyHandle proxy) const {
-    return gpu.read<GpuInstance>(EGpuSceneBuffer::Instances,
-                                 RenderScene::getInstanceId(proxy));
+    return gpu.read<GpuInstance>(
+      EGpuSceneBuffer::Instances, RenderScene::getInstanceId(proxy));
   }
 
   uint32 getMaterialSlot(RenderProxyHandle proxy, uint32 section) const {
-    return gpu.read<uint32>(EGpuSceneBuffer::MaterialSlots,
-                            getInstance(proxy).materialSlotOffset + section);
+    return gpu.read<uint32>(
+      EGpuSceneBuffer::MaterialSlots, getInstance(proxy).materialSlotOffset + section);
   }
 
   // The transform update of `proxy` in the last frame, null without update.
@@ -324,7 +302,7 @@ int main() {
     const auto expectUploaded = [&](MaterialHandle handle) {
       const GpuMaterial expected = toGpuMaterial(materials.get(handle));
       const GpuMaterial actual = gpu.read<GpuMaterial>(
-          EGpuSceneBuffer::Materials, MaterialRegistry::getGpuIndex(handle));
+        EGpuSceneBuffer::Materials, MaterialRegistry::getGpuIndex(handle));
       expect(std::memcmp(&expected, &actual, sizeof(GpuMaterial)) == 0);
     };
 
@@ -461,13 +439,13 @@ int main() {
     const MeshHandle mesh = f.meshes.create(grid, defaults);
 
     const TransformHandle moving = f.graph.create({.position = Vec3(1, 2, 3)});
-    const TransformHandle fixed = f.graph.create(
-        {.position = Vec3(5, 0, 0), .mobility = ETransformMobility::Static});
+    const TransformHandle fixed =
+      f.graph.create({.position = Vec3(5, 0, 0), .mobility = ETransformMobility::Static});
     const MaterialHandle overrides[] = {MaterialHandle{}, blue};
     const RenderProxyHandle a =
-        f.scene.create({.transform = moving, .mesh = mesh, .materials = overrides});
+      f.scene.create({.transform = moving, .mesh = mesh, .materials = overrides});
     const RenderProxyHandle s =
-        f.scene.create({.transform = fixed, .mesh = mesh, .castShadow = false});
+      f.scene.create({.transform = fixed, .mesh = mesh, .castShadow = false});
     expect(f.scene.isAlive(a) && f.scene.isAlive(s) && f.scene.getCount() == 2u);
     expect(f.scene.getTransform(a) == moving && f.scene.getMesh(a) == mesh);
     expect(f.scene.getMaterial(a, 0) == red && f.scene.getMaterial(a, 1) == blue);
@@ -483,8 +461,8 @@ int main() {
     expect(instance.localBoundingSphere == grid->boundingSphere);
     expect(f.getMaterialSlot(a, 0) == MaterialRegistry::getGpuIndex(red));
     expect(f.getMaterialSlot(a, 1) == MaterialRegistry::getGpuIndex(blue));
-    expect(f.getInstance(s).flags ==
-           (GPU_INSTANCE_FLAG_VALID | GPU_INSTANCE_FLAG_STATIC));
+    expect(
+      f.getInstance(s).flags == (GPU_INSTANCE_FLAG_VALID | GPU_INSTANCE_FLAG_STATIC));
     expect(f.getMaterialSlot(s, 0) == MaterialRegistry::getGpuIndex(red));
     expect(f.getMaterialSlot(s, 1) == MaterialRegistry::getGpuIndex(fallback));
 
@@ -589,7 +567,7 @@ int main() {
     const MeshHandle mesh = f.meshes.create(makeGrid(2, 1));
     const TransformHandle transform = f.graph.create();
     const RenderProxyHandle proxy =
-        f.scene.create({.transform = transform, .mesh = mesh});
+      f.scene.create({.transform = transform, .mesh = mesh});
     f.frame();
 
     f.graph.destroy(transform);
@@ -618,12 +596,12 @@ int main() {
       expect(!scene.create({.transform = dead_transform, .mesh = mesh}));
       expect(!scene.create({.transform = transform, .mesh = MeshHandle{}}));
       expect(!scene.create(
-          {.transform = transform, .mesh = mesh, .materials = dead_materials}));
+        {.transform = transform, .mesh = mesh, .materials = dead_materials}));
       expect(scene.getCount() == 0u && meshes.getRefCount(mesh) == 0u);
 
       const MaterialHandle overrides[] = {red};
       expect(scene.create({.transform = transform, .mesh = mesh, .materials = overrides})
-                 .valid());
+          .valid());
       expect(scene.create({.transform = transform, .mesh = mesh}).valid());
       expect(meshes.getRefCount(mesh) == 2u && materials.getRefCount(red) == 1u);
     }
@@ -631,6 +609,67 @@ int main() {
     expect(materials.getRefCount(materials.getDefault()) == 1u);
     meshes.destroy(mesh);
     materials.destroy(red);
+  };
+
+  "proxies are found by instance id"_test = [] {
+    SceneFixture f;
+    const MeshHandle mesh = f.meshes.create(makeGrid(2, 1));
+    const TransformHandle transform = f.graph.create();
+    const RenderProxyHandle a = f.scene.create({.transform = transform, .mesh = mesh});
+    const RenderProxyHandle b = f.scene.create({.transform = transform, .mesh = mesh});
+    expect(f.scene.getProxyByInstanceId(RenderScene::getInstanceId(a)) == a);
+    expect(f.scene.getProxyByInstanceId(RenderScene::getInstanceId(b)) == b);
+    expect(!f.scene.getProxyByInstanceId(1000u));
+
+    f.scene.destroy(a);
+    expect(!f.scene.getProxyByInstanceId(RenderScene::getInstanceId(a)));
+    f.scene.destroy(b);
+  };
+
+  "materials hold references on their textures"_test = [] {
+    struct FakeTextures final : ITextureReferences {
+      std::vector<int32> counts = std::vector<int32>(8, 0);
+      void addRef(TextureDescriptorIndex texture) override { ++counts[texture.value]; }
+      void release(TextureDescriptorIndex texture) override { --counts[texture.value]; }
+    };
+
+    FakeTextures textures;
+    MaterialRegistry materials;
+    MaterialAsset asset;
+    asset.baseColorTexture = {1};
+    asset.normalTexture = {2};
+    asset.emissiveTexture = {1};
+    const MaterialHandle before = materials.create(asset);
+
+    // Existing materials are moved to the new references.
+    materials.setTextureReferences(&textures);
+    expect(textures.counts[0] == 0 && textures.counts[1] == 2 && textures.counts[2] == 1);
+
+    const MaterialHandle copy = materials.clone(before);
+    expect(textures.counts[1] == 4 && textures.counts[2] == 2);
+
+    MaterialAsset updated = asset;
+    updated.normalTexture = {3};
+    updated.emissiveTexture = {};
+    materials.update(copy, updated);
+    expect(textures.counts[1] == 3 && textures.counts[2] == 1 && textures.counts[3] == 1);
+
+    materials.destroy(copy);
+    expect(textures.counts[1] == 2 && textures.counts[2] == 1 && textures.counts[3] == 0);
+
+    materials.setTextureReferences(nullptr);
+    expect(std::all_of(textures.counts.begin(), textures.counts.end(),
+      [](int32 count) { return count == 0; }));
+    // Without references, the materials no longer count.
+    materials.destroy(before);
+    expect(textures.counts[1] == 0);
+  };
+
+  "gpu scene element sizes"_test = [] {
+    expect(getGpuSceneElementDwords(EGpuSceneBuffer::VertexPositions) == 3u);
+    expect(getGpuSceneElementDwords(EGpuSceneBuffer::Indices) == 1u);
+    expect(getGpuSceneElementDwords(EGpuSceneBuffer::Materials) ==
+           sizeof(GpuMaterial) / sizeof(uint32));
   };
 
   return 0;

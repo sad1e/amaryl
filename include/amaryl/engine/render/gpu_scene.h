@@ -33,6 +33,28 @@ enum class EGpuSceneBuffer : uint8 {
 inline constexpr uint32 kGpuSceneBufferCount =
     static_cast<uint32>(EGpuSceneBuffer::Count);
 
+// Size of one element of `buffer`, capacities and element indices are in elements.
+constexpr uint32 getGpuSceneElementDwords(EGpuSceneBuffer buffer) {
+  switch (buffer) {
+    case EGpuSceneBuffer::Instances:
+      return sizeof(GpuInstance) / sizeof(uint32);
+    case EGpuSceneBuffer::Materials:
+      return sizeof(GpuMaterial) / sizeof(uint32);
+    case EGpuSceneBuffer::Meshes:
+      return sizeof(GpuMesh) / sizeof(uint32);
+    case EGpuSceneBuffer::MeshSections:
+      return sizeof(GpuMeshSection) / sizeof(uint32);
+    case EGpuSceneBuffer::Meshlets:
+      return sizeof(GpuMeshlet) / sizeof(uint32);
+    case EGpuSceneBuffer::VertexPositions:
+      return 3;
+    case EGpuSceneBuffer::VertexAttributes:
+      return GPU_SCENE_VERTEX_ATTRIBUTE_DWORDS;
+    default:
+      return 1;
+  }
+}
+
 // Dword scatter copies into one GPU buffer: `payload` goes to a staging buffer, every
 // copy moves `dwordCount` dwords from `payload[srcOffset]` to `buffer[dstOffset]`.
 // Contiguous writes are merged. Copies of a batch never overlap and may run in any order.

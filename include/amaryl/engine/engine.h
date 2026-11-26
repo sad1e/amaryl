@@ -4,6 +4,8 @@
 
 #include "amaryl/engine/common.h"
 #include "amaryl/engine/render/deferred_renderer.h"
+#include "amaryl/engine/render/texture_registry.h"
+#include "amaryl/engine/scene/model_library.h"
 #include "amaryl/engine/scene/world.h"
 #include "amaryl/nrhi/nrhi.h"
 
@@ -38,11 +40,19 @@ struct ENGINE_API Engine final {
 
   IContext* getRHI() const { return rhi_.get(); }
   World& getWorld() { return world_; }
+  // Valid between init() and shutdown().
+  TextureRegistry& getTextures() { return *textures_; }
+  ModelLibrary& getModels() { return *models_; }
+  const DeferredRenderer& getRenderer() const { return renderer_; }
 
  private:
   std::unique_ptr<IContext> rhi_;
   DeferredRenderer renderer_;
   World world_;
+  std::unique_ptr<TextureRegistry> textures_;
+  std::unique_ptr<ModelLibrary> models_;
+  // Reused every frame to keep the allocations.
+  GpuSceneUploads uploads_;
   uint32 width_{0};
   uint32 height_{0};
 };

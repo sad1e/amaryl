@@ -100,11 +100,29 @@ if(BUILD_TESTING)
 
     add_test(NAME amaryl-project COMMAND amaryl-project-test)
 
+    add_executable(amaryl-image-decoder-test
+        ${AMARYL_ROOT}/tests/engine/image_decoder_test.cpp
+    )
+
+    target_link_libraries(amaryl-image-decoder-test PRIVATE amaryl-engine)
+    target_include_directories(amaryl-image-decoder-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-image-decoder COMMAND amaryl-image-decoder-test)
+
+    add_executable(amaryl-editor-scene-test
+        ${AMARYL_ROOT}/tests/editor/editor_scene_test.cpp
+    )
+
+    target_link_libraries(amaryl-editor-scene-test PRIVATE amaryl-editor-core)
+    target_include_directories(amaryl-editor-scene-test PRIVATE ${AMARYL_ROOT}/tests)
+
+    add_test(NAME amaryl-editor-scene COMMAND amaryl-editor-scene-test)
+
     foreach(test_target
         amaryl-math-test amaryl-allocator-test amaryl-uuid-test amaryl-vfs-test
         amaryl-scene-graph-test amaryl-mesh-asset-test amaryl-gpu-scene-test
         amaryl-gltf-import-test amaryl-entity-test amaryl-camera-test
-        amaryl-project-test)
+        amaryl-project-test amaryl-image-decoder-test amaryl-editor-scene-test)
         amaryl_add_windows_manifest(${test_target})
     endforeach()
 endif()

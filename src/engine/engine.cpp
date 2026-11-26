@@ -27,6 +27,9 @@ bool Engine::init(SDL_Window* window, uint32 width, uint32 height) {
   height_ = height;
 
   renderer_.init(this);
+  textures_ = std::make_unique<TextureRegistry>(rhi_.get());
+  world_.materials.setTextureReferences(textures_.get());
+  models_ = std::make_unique<ModelLibrary>(world_, textures_.get());
   return true;
 }
 
@@ -36,6 +39,11 @@ void Engine::shutdown() {
   }
 
   rhi_->wait({});
+  // The world outlives the RHI, its materials drop their texture references (their
+  // descriptor indices dangle from here on).
+  models_.reset();
+  world_.materials.setTextureReferences(nullptr);
+  textures_.reset();
   renderer_.shutdown();
   rhi_.reset();
 }
@@ -78,6 +86,13 @@ bool Engine::render(ImDrawData* imgui_draw_data) {
     processResize(width_, height_);
     return true;
   }
+
+  // Flushed only when the frame is recorded, skipped frames keep their changes pending.
+  uploads_.clear();
+  world_.meshes.flushUploads(uploads_);
+  world_.materials.flushUploads(uploads_);
+  world_.scene.flushUploads(uploads_);
+  renderer_.uploadScene(uploads_);
 
   renderer_.renderGBuffersPass();
   renderer_.renderPostProcessPass();
