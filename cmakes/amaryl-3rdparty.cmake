@@ -64,3 +64,6 @@ add_subdirectory(${AMARYL_3RDPARTY_ROOT}/simdjson)
 
 # imgui
 add_subdirectory(${AMARYL_3RDPARTY_ROOT}/imgui)
+
+# stb_image
+add_subdirectory(${AMARYL_3RDPARTY_ROOT}/stb)
