@@ -3,6 +3,7 @@
 #include <random>
 #include <vector>
 
+#include "amaryl/engine/asset/asset_importer.h"
 #include "boost/ut.hpp"
 
 using namespace amaryl;
@@ -18,7 +19,7 @@ void validate(const SceneGraph& graph) {
     const TransformHandle parent = graph.getParent(handle);
     uint32 depth = 0;
     for (TransformHandle ancestor = parent; ancestor;
-         ancestor = graph.getParent(ancestor)) {
+      ancestor = graph.getParent(ancestor)) {
       ++depth;
     }
     expect(graph.getDepth(handle) == depth);
@@ -32,7 +33,7 @@ void validate(const SceneGraph& graph) {
       expect(parent_index < i);
       bool found = false;
       for (TransformHandle child = graph.getFirstChild(parent); child;
-           child = graph.getNextSibling(child)) {
+        child = graph.getNextSibling(child)) {
         found |= child == handle;
       }
       expect(found);
@@ -48,11 +49,11 @@ void validate(const SceneGraph& graph) {
   }
 }
 
-std::vector<TransformHandle> collectDestroyed(const SceneGraph& graph, uint32 since,
-                                              bool& complete) {
+std::vector<TransformHandle> collectDestroyed(
+  const SceneGraph& graph, uint32 since, bool& complete) {
   std::vector<TransformHandle> out;
   complete = graph.forEachDestroyedSince(
-      since, [&](TransformHandle handle) { out.push_back(handle); });
+    since, [&](TransformHandle handle) { out.push_back(handle); });
   return out;
 }
 
@@ -74,11 +75,11 @@ struct Consumer {
 
   void sync(const SceneGraph& graph) {
     const bool complete =
-        graph.forEachDestroyedSince(synced, [&](TransformHandle handle) {
-          if (handle.index() < byIndex.size() && byIndex[handle.index()] == handle) {
-            byIndex[handle.index()] = {};
-          }
-        });
+      graph.forEachDestroyedSince(synced, [&](TransformHandle handle) {
+        if (handle.index() < byIndex.size() && byIndex[handle.index()] == handle) {
+          byIndex[handle.index()] = {};
+        }
+      });
     if (!complete) {
       ++fallbacks;
       for (TransformHandle& handle : byIndex) {
@@ -195,8 +196,8 @@ int main() {
     expect(collectDestroyed(graph, vx - 1, complete).empty() && !complete);
     destroyed = collectDestroyed(graph, vx, complete);
     expect(complete && destroyed.size() == 1u && destroyed[0] == y);
-    expect(collectDestroyed(graph, graph.getWorldVersion(), complete).empty() &&
-           complete);
+    expect(
+      collectDestroyed(graph, graph.getWorldVersion(), complete).empty() && complete);
   };
 
   "world transforms follow the hierarchy"_test = [] {
@@ -205,7 +206,7 @@ int main() {
     const TransformHandle a = graph.create({.position = Vec3(1, 0, 0), .rotation = r90});
     const TransformHandle b = graph.create({.parent = a, .position = Vec3(1, 0, 0)});
     const TransformHandle c =
-        graph.create({.parent = b, .position = Vec3(0, 2, 0), .scale = Vec3(2, 2, 2)});
+      graph.create({.parent = b, .position = Vec3(0, 2, 0), .scale = Vec3(2, 2, 2)});
     expect(graph.isWorldStale(c));
     const uint32 v1 = graph.update();
     expect(!graph.isWorldStale(c));
@@ -236,16 +237,14 @@ int main() {
     graph.teleport(b);
     graph.update();
     int teleports = 0;
-    graph.forEachChangedSince(v2, [&](TransformHandle, const Mat44&, bool teleported) {
-      teleports += teleported;
-    });
+    graph.forEachChangedSince(v2,
+      [&](TransformHandle, const Mat44&, bool teleported) { teleports += teleported; });
     expect(teleports == 2);
 
     // Reparenting to a later node with KeepWorld reorders the nodes.
-    const TransformHandle d =
-        graph.create({.position = Vec3(3, 4, 5),
-                      .rotation = Quat::sRotation(Vec3::sAxisY(), 0.7f),
-                      .scale = Vec3(1.5f, 1.5f, 1.5f)});
+    const TransformHandle d = graph.create({.position = Vec3(3, 4, 5),
+      .rotation = Quat::sRotation(Vec3::sAxisY(), 0.7f),
+      .scale = Vec3(1.5f, 1.5f, 1.5f)});
     graph.update();
     const Mat44 world_b = graph.getWorld(b);
     Mat44 world_c = graph.getWorld(c);
@@ -317,7 +316,7 @@ int main() {
       } else if (op < 6) {
         const TransformHandle child = live[rng() % live.size()];
         const TransformHandle parent =
-            rng() % 4 ? live[rng() % live.size()] : TransformHandle{};
+          rng() % 4 ? live[rng() % live.size()] : TransformHandle{};
         bool cycle = false;
         for (TransformHandle node = parent; node; node = graph.getParent(node)) {
           cycle |= node == child;
@@ -330,11 +329,11 @@ int main() {
           expect(graph.getWorld(child).IsClose(world, 1e-4f));
         }
       } else if (op < 8) {
-        graph.destroy(live[rng() % live.size()],
-                      rng() % 2 ? ETransformDestroyMode::Recursive
-                                : ETransformDestroyMode::ReparentChildren);
-        std::erase_if(live,
-                      [&](TransformHandle handle) { return !graph.isAlive(handle); });
+        graph.destroy(
+          live[rng() % live.size()], rng() % 2 ? ETransformDestroyMode::Recursive
+                                               : ETransformDestroyMode::ReparentChildren);
+        std::erase_if(
+          live, [&](TransformHandle handle) { return !graph.isAlive(handle); });
       } else {
         graph.setLocalPosition(live[rng() % live.size()], Vec3(float(rng() % 10), 0, 0));
       }
@@ -349,6 +348,21 @@ int main() {
     expect(every.fallbacks == 0u);
     expect(eager.fallbacks == 0u);
     expect(lazy.fallbacks > 0u);
+  };
+
+  "import gltf as scenegraph"_test = [] {
+    MeshBuildOptions mesh_build_options;
+    GltfImportOptions gltf_import_options;
+    GltfImportResult result;
+
+    importGltf("../../EngineAssets/Bistro/bistro.gltf", gltf_import_options, result);
+
+    for (int32 i = 0; i < result.scene.nodes.size() && i < 10; ++i) {
+      const SceneNodeAsset& node = result.scene.nodes[i];
+      printf("%s:\n\tparent: %d\n\tposition: %.3f, %.3f, %.3f\n\tmesh: %d\n",
+        node.name.c_str(), node.parent, node.position.GetX(), node.position.GetY(),
+        node.position.GetZ(), node.mesh);
+    }
   };
 
   return 0;
