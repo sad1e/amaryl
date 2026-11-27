@@ -215,7 +215,7 @@ void StagingDevice::imageData2D(VulkanImage& image, const VkRect2D& region,
   const uint64 storage_size = (uint64)layer_storage_size * num_layers;
   ensureStagingBufferSize(storage_size);
 
-  ASSERT(storage_size < staging_buffer_size_);
+  ASSERT(storage_size <= staging_buffer_size_);
 
   MemoryRegionDesc desc = getNextFreeOffset(storage_size);
   // not support for copying image in multiple smaller chunck sizes, if we get smaller
