@@ -94,6 +94,9 @@ bool App::initialize(const AppInitInfo& info) {
   minimized_ = false;
   resize_pending_ = false;
   last_time_ = SDL_GetPerformanceCounter();
+
+  // note: load test scene
+  kEngine->LoadTestScene();
   return true;
 }
 

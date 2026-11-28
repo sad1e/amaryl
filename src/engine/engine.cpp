@@ -118,4 +118,21 @@ void ShutdownEngine() {
   kEngine = nullptr;
 }
 
+void Engine::LoadTestScene() {
+  const LoadedModel* model_sponza =
+    models_->load("../../EngineAssets/Sponza/Sponza.gltf");
+
+  ALOGI("vvvvv load test scene");
+  ALOGI("\tpath: %s", model_sponza->path.c_str());
+  ALOGI("\tmeshes size: %zu", model_sponza->model.meshes.size());
+  ALOGI("\tmaterials size: %zu", model_sponza->model.materials.size());
+  for (uint32 i = 0; i < model_sponza->scene.nodes.size(); ++i) {
+  }
+
+  ALOGI("\tscene asset nodes:");
+  for (const SceneNodeAsset& node_asset : model_sponza->scene.nodes) {
+    ALOGI("\t\t%s", node_asset.name.c_str());
+  }
+}
+
 }  // namespace amaryl

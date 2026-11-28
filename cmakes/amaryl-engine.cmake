@@ -13,15 +13,18 @@ set(AMARYL_ENGINE_SOURCES
   ${AMARYL_ENGINE_SOURCE_ROOT}/input_system.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_importer.h
-  ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_manager.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/asset_system.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/image_decoder.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/material_asset.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/mesh_asset.h
   ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/scene_asset.h
+  ${AMARYL_ENGINE_INCLUDE_ROOT}/asset/texture_asset.h
 
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/asset_importer.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/image_decoder.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/asset/asset_system.cpp
   ${AMARYL_ENGINE_SOURCE_ROOT}/asset/mesh_asset.cpp
+  ${AMARYL_ENGINE_SOURCE_ROOT}/asset/texture_asset.cpp
 
   ${AMARYL_ENGINE_INCLUDE_ROOT}/project/project.h
 

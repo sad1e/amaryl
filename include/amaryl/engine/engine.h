@@ -45,6 +45,8 @@ struct ENGINE_API Engine final {
   ModelLibrary& getModels() { return *models_; }
   const DeferredRenderer& getRenderer() const { return renderer_; }
 
+  void LoadTestScene();
+
  private:
   std::unique_ptr<IContext> rhi_;
   DeferredRenderer renderer_;

@@ -1,10 +1,17 @@
 #pragma once
 
+#include "amaryl/core/math/math.h"
+#include "amaryl/core/span.h"
 #include "amaryl/core/uuid.h"
-#include "amaryl/engine/asset/asset_importer.h"
-#include "amaryl/engine/common.h"
 
 namespace amaryl {
+
+enum class EAssetType : uint16 {
+  Mesh,
+  Texture,
+  Material,
+  Shader,
+};
 
 /**
  * Asset is the resource in project, it include runtime resource and editor resource. The
@@ -15,11 +22,10 @@ struct Asset {
   // The unique id of asset.
   Uuid uuid;
 
-#if AMARYL_EDITOR
-  char debug_name_[kMaxAssetDebugName]{};
-#endif
-};
+  std::string displayName;
 
-struct AssetManager {};
+  // The path of asset
+  std::string path;
+};
 
 }  // namespace amaryl

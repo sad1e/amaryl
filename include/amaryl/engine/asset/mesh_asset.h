@@ -5,6 +5,8 @@
 
 #include "amaryl/core/math/math.h"
 #include "amaryl/core/span.h"
+#include "amaryl/core/uuid.h"
+#include "amaryl/engine/asset/asset_common.h"
 #include "amaryl/engine/common.h"
 #include "amaryl/engine/render/gpu_scene.shared.h"
 
@@ -13,10 +15,7 @@ namespace amaryl {
 // Cooked static mesh in the GPU scene layout, read-only once built and shared by every
 // instance. All offsets are relative to the arrays of this asset, `MeshRegistry` rebases
 // them when the mesh is uploaded. Only LOD0 is built for now.
-struct MeshAsset {
-  std::string name;
-
-  // Mesh space bounds, xyz center and w radius for the sphere.
+struct MeshAsset : public Asset {
   float4 boundingSphere{0.0f, 0.0f, 0.0f, 0.0f};
   float3 aabbMin{0.0f, 0.0f, 0.0f};
   float3 aabbMax{0.0f, 0.0f, 0.0f};
@@ -65,7 +64,7 @@ struct MeshBuildOptions {
 // false and leaves `out` untouched when a section has invalid streams or the mesh has no
 // triangle.
 ENGINE_API bool buildMeshAsset(Span<const MeshSourceSection> sections,
-                               const MeshBuildOptions& options, MeshAsset& out);
+  const MeshBuildOptions& options, MeshAsset& out);
 
 // Encoders and decoders of the vertexAttributes layout, see gpu_scene.shared.h.
 ENGINE_API uint32 packVertexNormal(Vec3Arg normal);

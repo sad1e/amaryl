@@ -1,3 +1,7 @@
 #include "amaryl/engine/scene/world.h"
 
-namespace amaryl {}  // namespace amaryl
+namespace amaryl {
+
+void World::loadDemoScene() {}
+
+}  // namespace amaryl

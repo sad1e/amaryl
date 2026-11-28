@@ -48,15 +48,14 @@ struct MaterialAsset {
 };
 
 inline constexpr uint32 kMaterialPipelineBinCount =
-    static_cast<uint32>(EShadingModel::Count) * static_cast<uint32>(EAlphaMode::Count) *
-    2;
+  static_cast<uint32>(EShadingModel::Count) * static_cast<uint32>(EAlphaMode::Count) * 2;
 
 // Materials of the same bin are drawn with the same pipeline.
-constexpr uint32 getMaterialPipelineBin(EShadingModel shading_model,
-                                        EAlphaMode alpha_mode, bool double_sided) {
+constexpr uint32 getMaterialPipelineBin(
+  EShadingModel shading_model, EAlphaMode alpha_mode, bool double_sided) {
   return (static_cast<uint32>(shading_model) * static_cast<uint32>(EAlphaMode::Count) +
-          static_cast<uint32>(alpha_mode)) *
-             2 +
+           static_cast<uint32>(alpha_mode)) *
+           2 +
          (double_sided ? 1 : 0);
 }
 
@@ -64,7 +63,7 @@ inline GpuMaterial toGpuMaterial(const MaterialAsset& material) {
   GpuMaterial gpu{};
   gpu.baseColorFactor = material.baseColorFactor;
   gpu.emissiveAlphaCutoff = float4{material.emissiveFactor[0], material.emissiveFactor[1],
-                                   material.emissiveFactor[2], material.alphaCutoff};
+    material.emissiveFactor[2], material.alphaCutoff};
   gpu.metallicFactor = material.metallicFactor;
   gpu.roughnessFactor = material.roughnessFactor;
   gpu.normalScale = material.normalScale;
@@ -75,12 +74,12 @@ inline GpuMaterial toGpuMaterial(const MaterialAsset& material) {
   gpu.occlusionTexture = material.occlusionTexture;
   gpu.emissiveTexture = material.emissiveTexture;
   gpu.sampler = material.sampler;
-  gpu.pipelineBin = getMaterialPipelineBin(material.shadingModel, material.alphaMode,
-                                           material.doubleSided);
+  gpu.pipelineBin = getMaterialPipelineBin(
+    material.shadingModel, material.alphaMode, material.doubleSided);
   gpu.flags =
-      (material.alphaMode == EAlphaMode::Mask ? GPU_MATERIAL_FLAG_ALPHA_MASK : 0u) |
-      (material.alphaMode == EAlphaMode::Blend ? GPU_MATERIAL_FLAG_ALPHA_BLEND : 0u) |
-      (material.doubleSided ? GPU_MATERIAL_FLAG_DOUBLE_SIDED : 0u);
+    (material.alphaMode == EAlphaMode::Mask ? GPU_MATERIAL_FLAG_ALPHA_MASK : 0u) |
+    (material.alphaMode == EAlphaMode::Blend ? GPU_MATERIAL_FLAG_ALPHA_BLEND : 0u) |
+    (material.doubleSided ? GPU_MATERIAL_FLAG_DOUBLE_SIDED : 0u);
   return gpu;
 }
 

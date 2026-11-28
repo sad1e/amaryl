@@ -14,9 +14,9 @@ namespace amaryl {
 namespace {
 
 static_assert(sizeof(float2) == 2 * sizeof(float) &&
-                  sizeof(float3) == 3 * sizeof(float) &&
-                  sizeof(float4) == 4 * sizeof(float),
-              "Accessors are unpacked in place");
+                sizeof(float3) == 3 * sizeof(float) &&
+                sizeof(float4) == 4 * sizeof(float),
+  "Accessors are unpacked in place");
 
 struct CgltfDataDeleter {
   void operator()(cgltf_data* data) const { cgltf_free(data); }
@@ -26,8 +26,7 @@ using CgltfDataPtr = std::unique_ptr<cgltf_data, CgltfDataDeleter>;
 // cgltf reads the files with `fopen`, which takes ANSI paths on Windows and knows nothing
 // about virtual paths. Both the glTF file and its external buffers go through the VFS.
 cgltf_result readCgltfFile(const cgltf_memory_options* memory,
-                           const cgltf_file_options* /*file*/, const char* path,
-                           cgltf_size* size, void** data) {
+  const cgltf_file_options* /*file*/, const char* path, cgltf_size* size, void** data) {
   std::vector<uint8> bytes;
   if (!GetVirtualFileSystem().readFile(path, bytes)) {
     return cgltf_result_file_not_found;
@@ -39,8 +38,9 @@ cgltf_result readCgltfFile(const cgltf_memory_options* memory,
   }
   const cgltf_size count = requested ? requested : bytes.size();
 
-  void* out = memory->alloc_func ? memory->alloc_func(memory->user_data, count ? count : 1)
-                                 : std::malloc(count ? count : 1);
+  void* out = memory->alloc_func
+                ? memory->alloc_func(memory->user_data, count ? count : 1)
+                : std::malloc(count ? count : 1);
   if (!out) {
     return cgltf_result_out_of_memory;
   }
@@ -54,8 +54,8 @@ cgltf_result readCgltfFile(const cgltf_memory_options* memory,
   return cgltf_result_success;
 }
 
-void releaseCgltfFile(const cgltf_memory_options* memory,
-                      const cgltf_file_options* /*file*/, void* data) {
+void releaseCgltfFile(
+  const cgltf_memory_options* memory, const cgltf_file_options* /*file*/, void* data) {
   if (memory->free_func) {
     memory->free_func(memory->user_data, data);
   } else {
@@ -86,7 +86,7 @@ bool isRequiredExtensionSupported(const char* name) {
 
 // "data:[<mime type>];base64,<data>"
 bool decodeDataUri(const cgltf_data& data, const char* uri, std::vector<uint8>& out,
-                   std::string& mime_type) {
+  std::string& mime_type) {
   const char* comma = std::strchr(uri, ',');
   if (!comma || comma - uri < 12 || std::strncmp(comma - 7, ";base64", 7) != 0) {
     return false;
@@ -126,8 +126,8 @@ const cgltf_image* getImage(const cgltf_texture& texture) {
 
 // Loads every image and sampler once through the import callbacks.
 struct TextureResolver {
-  TextureResolver(const cgltf_data& data, const GltfImportOptions& options,
-                  std::string directory)
+  TextureResolver(
+    const cgltf_data& data, const GltfImportOptions& options, std::string directory)
       : data_(data),
         options_(options),
         directory_(std::move(directory)),
@@ -149,7 +149,7 @@ struct TextureResolver {
 
     const size_t image_index = cgltf_image_index(&data_, image);
     std::optional<TextureDescriptorIndex>& texture =
-        images_[image_index * 2 + (srgb ? 1 : 0)];
+      images_[image_index * 2 + (srgb ? 1 : 0)];
     if (!texture) {
       texture = loadImage(*image, static_cast<uint32>(image_index), srgb);
     }
@@ -163,7 +163,7 @@ struct TextureResolver {
     }
     const cgltf_sampler* sampler = texture.sampler;
     std::optional<SamplerDescriptorIndex>& descriptor =
-        samplers_[sampler ? cgltf_sampler_index(&data_, sampler) + 1 : 0];
+      samplers_[sampler ? cgltf_sampler_index(&data_, sampler) + 1 : 0];
     if (!descriptor) {
       GltfSamplerDesc desc;
       if (sampler) {
@@ -219,8 +219,8 @@ struct TextureResolver {
   std::vector<std::optional<SamplerDescriptorIndex>> samplers_;
 };
 
-MaterialAsset convertMaterial(const cgltf_material& material, size_t index,
-                              TextureResolver& textures) {
+MaterialAsset convertMaterial(
+  const cgltf_material& material, size_t index, TextureResolver& textures) {
   MaterialAsset out;
   out.name = material.name ? material.name : "material_" + std::to_string(index);
   out.shadingModel = material.unlit ? EShadingModel::Unlit : EShadingModel::Lit;
@@ -242,35 +242,34 @@ MaterialAsset convertMaterial(const cgltf_material& material, size_t index,
   const cgltf_pbr_metallic_roughness& pbr = material.pbr_metallic_roughness;
   const float* base_color = pbr.base_color_factor;
   out.baseColorFactor =
-      float4{base_color[0], base_color[1], base_color[2], base_color[3]};
+    float4{base_color[0], base_color[1], base_color[2], base_color[3]};
   out.metallicFactor = pbr.metallic_factor;
   out.roughnessFactor = pbr.roughness_factor;
-  const float strength = material.has_emissive_strength
-                             ? material.emissive_strength.emissive_strength
-                             : 1.0f;
+  const float strength =
+    material.has_emissive_strength ? material.emissive_strength.emissive_strength : 1.0f;
   const float* emissive = material.emissive_factor;
   out.emissiveFactor =
-      float3{emissive[0] * strength, emissive[1] * strength, emissive[2] * strength};
+    float3{emissive[0] * strength, emissive[1] * strength, emissive[2] * strength};
   out.normalScale =
-      material.normal_texture.texture ? material.normal_texture.scale : 1.0f;
+    material.normal_texture.texture ? material.normal_texture.scale : 1.0f;
   out.occlusionStrength =
-      material.occlusion_texture.texture ? material.occlusion_texture.scale : 1.0f;
+    material.occlusion_texture.texture ? material.occlusion_texture.scale : 1.0f;
 
   if (material.has_pbr_metallic_roughness) {
     out.baseColorTexture = textures.resolveTexture(pbr.base_color_texture, true);
     out.metallicRoughnessTexture =
-        textures.resolveTexture(pbr.metallic_roughness_texture, false);
+      textures.resolveTexture(pbr.metallic_roughness_texture, false);
   }
   out.normalTexture = textures.resolveTexture(material.normal_texture, false);
   out.occlusionTexture = textures.resolveTexture(material.occlusion_texture, false);
   out.emissiveTexture = textures.resolveTexture(material.emissive_texture, true);
 
   const cgltf_texture_view* views[] = {
-      material.has_pbr_metallic_roughness ? &pbr.base_color_texture : nullptr,
-      material.has_pbr_metallic_roughness ? &pbr.metallic_roughness_texture : nullptr,
-      &material.normal_texture,
-      &material.occlusion_texture,
-      &material.emissive_texture,
+    material.has_pbr_metallic_roughness ? &pbr.base_color_texture : nullptr,
+    material.has_pbr_metallic_roughness ? &pbr.metallic_roughness_texture : nullptr,
+    &material.normal_texture,
+    &material.occlusion_texture,
+    &material.emissive_texture,
   };
   for (const cgltf_texture_view* view : views) {
     if (view && view->texture) {
@@ -291,8 +290,8 @@ struct PrimitiveStreams {
 
 // Missing optional streams stay empty.
 template <typename T>
-bool unpackStream(const cgltf_accessor* accessor, cgltf_type type, size_t count,
-                  std::vector<T>& out) {
+bool unpackStream(
+  const cgltf_accessor* accessor, cgltf_type type, size_t count, std::vector<T>& out) {
   if (!accessor) {
     return true;
   }
@@ -301,8 +300,8 @@ bool unpackStream(const cgltf_accessor* accessor, cgltf_type type, size_t count,
   }
   out.resize(count);
   const size_t float_count = count * cgltf_num_components(type);
-  return cgltf_accessor_unpack_floats(accessor, reinterpret_cast<float*>(out.data()),
-                                      float_count) == float_count;
+  return cgltf_accessor_unpack_floats(
+           accessor, reinterpret_cast<float*>(out.data()), float_count) == float_count;
 }
 
 bool readPrimitive(const cgltf_primitive& primitive, PrimitiveStreams& out) {
@@ -353,11 +352,11 @@ bool readPrimitive(const cgltf_primitive& primitive, PrimitiveStreams& out) {
   }
   out.indices.resize(index_count);
   return cgltf_accessor_unpack_indices(primitive.indices, out.indices.data(),
-                                       sizeof(uint32), index_count) == index_count;
+           sizeof(uint32), index_count) == index_count;
 }
 
 ModelMesh convertMesh(const cgltf_data& data, const cgltf_mesh& mesh, size_t index,
-                      const MeshBuildOptions& options) {
+  const MeshBuildOptions& options) {
   auto asset = std::make_shared<MeshAsset>();
   asset->name = mesh.name ? mesh.name : "mesh_" + std::to_string(index);
 
@@ -367,8 +366,8 @@ ModelMesh convertMesh(const cgltf_data& data, const cgltf_mesh& mesh, size_t ind
   for (size_t i = 0; i < mesh.primitives_count; ++i) {
     const cgltf_primitive& primitive = mesh.primitives[i];
     if (primitive.type != cgltf_primitive_type_triangles) {
-      ALOGW("glTF: skipped non-triangle primitive %zu of mesh '%s'", i,
-            asset->name.c_str());
+      ALOGW(
+        "glTF: skipped non-triangle primitive %zu of mesh '%s'", i, asset->name.c_str());
       continue;
     }
     if (!readPrimitive(primitive, primitives.emplace_back())) {
@@ -377,16 +376,16 @@ ModelMesh convertMesh(const cgltf_data& data, const cgltf_mesh& mesh, size_t ind
       continue;
     }
     out.sectionMaterials.push_back(
-        primitive.material
-            ? static_cast<int32>(cgltf_material_index(&data, primitive.material))
-            : -1);
+      primitive.material
+        ? static_cast<int32>(cgltf_material_index(&data, primitive.material))
+        : -1);
   }
 
   std::vector<MeshSourceSection> sections;
   sections.reserve(primitives.size());
   for (const PrimitiveStreams& streams : primitives) {
     sections.push_back({streams.positions, streams.normals, streams.tangents, streams.uvs,
-                        streams.indices});
+      streams.indices});
   }
   if (sections.empty() || !buildMeshAsset(sections, options, *asset)) {
     ALOGW("glTF: mesh '%s' has no valid primitive", asset->name.c_str());
@@ -452,7 +451,7 @@ void convertNodeTransform(const cgltf_node& node, SceneNodeAsset& out) {
   if (node.has_matrix) {
     const float* m = node.matrix;
     const Mat44 matrix(Vec4(m[0], m[1], m[2], m[3]), Vec4(m[4], m[5], m[6], m[7]),
-                       Vec4(m[8], m[9], m[10], m[11]), Vec4(m[12], m[13], m[14], m[15]));
+      Vec4(m[8], m[9], m[10], m[11]), Vec4(m[12], m[13], m[14], m[15]));
     Vec3 scale;
     const Mat44 rotation_translation = matrix.Decompose(scale);
     out.position = rotation_translation.GetTranslation();
@@ -465,8 +464,8 @@ void convertNodeTransform(const cgltf_node& node, SceneNodeAsset& out) {
     out.position = Vec3(node.translation[0], node.translation[1], node.translation[2]);
   }
   if (node.has_rotation) {
-    const Quat rotation(node.rotation[0], node.rotation[1], node.rotation[2],
-                        node.rotation[3]);
+    const Quat rotation(
+      node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
     out.rotation = rotation.LengthSq() > 0.0f ? rotation.Normalized() : Quat::sIdentity();
   }
   if (node.has_scale) {
@@ -477,15 +476,15 @@ void convertNodeTransform(const cgltf_node& node, SceneNodeAsset& out) {
 // Depth first from the roots of the default scene, parents before children. Only the
 // cameras and lights used by the imported nodes are kept.
 void convertNodes(const cgltf_data& data, const GltfImportOptions& options,
-                  const std::vector<ModelMesh>& meshes, SceneAsset& out) {
+  const std::vector<ModelMesh>& meshes, SceneAsset& out) {
   std::vector<std::pair<const cgltf_node*, int32>> stack;
   const cgltf_scene* scene = data.scene ? data.scene : data.scenes;
   if (scene) {
     for (size_t i = scene->nodes_count; i-- > 0;) {
       const cgltf_node* node = scene->nodes[i];
       if (node->parent) {
-        ALOGW("glTF: skipped scene root '%s' with a parent",
-              node->name ? node->name : "");
+        ALOGW(
+          "glTF: skipped scene root '%s' with a parent", node->name ? node->name : "");
         continue;
       }
       stack.emplace_back(node, -1);
@@ -517,7 +516,7 @@ void convertNodes(const cgltf_data& data, const GltfImportOptions& options,
 
     const int32 index = static_cast<int32>(out.nodes.size());
     SceneNodeAsset& converted = out.nodes.emplace_back();
-    converted.name = node->name ? node->name : "";
+    converted.name = node->name ? node->name : "unknown";
     converted.parent = parent;
     convertNodeTransform(*node, converted);
     if (node->mesh) {
@@ -552,7 +551,7 @@ void convertNodes(const cgltf_data& data, const GltfImportOptions& options,
 }
 
 bool importParsed(const cgltf_options& options, cgltf_data* data, const char* path,
-                  const GltfImportOptions& import_options, GltfImportResult& out) {
+  const GltfImportOptions& import_options, GltfImportResult& out) {
   cgltf_result result = cgltf_load_buffers(&options, data, path);
   if (result != cgltf_result_success) {
     ALOGE("glTF: cannot load the buffers of '%s' (%d)", path, static_cast<int>(result));
@@ -566,7 +565,7 @@ bool importParsed(const cgltf_options& options, cgltf_data* data, const char* pa
   for (size_t i = 0; i < data->extensions_required_count; ++i) {
     if (!isRequiredExtensionSupported(data->extensions_required[i])) {
       ALOGE("glTF: '%s' requires the unsupported extension %s", path,
-            data->extensions_required[i]);
+        data->extensions_required[i]);
       return false;
     }
   }
@@ -581,7 +580,7 @@ bool importParsed(const cgltf_options& options, cgltf_data* data, const char* pa
   model.meshes.reserve(data->meshes_count);
   for (size_t i = 0; i < data->meshes_count; ++i) {
     model.meshes.push_back(
-        convertMesh(*data, data->meshes[i], i, import_options.meshBuild));
+      convertMesh(*data, data->meshes[i], i, import_options.meshBuild));
   }
   convertNodes(*data, import_options, model.meshes, imported.scene);
   out = std::move(imported);
@@ -590,8 +589,8 @@ bool importParsed(const cgltf_options& options, cgltf_data* data, const char* pa
 
 }  // namespace
 
-bool importGltf(const char* path, const GltfImportOptions& options,
-                GltfImportResult& out) {
+bool importGltf(
+  const char* path, const GltfImportOptions& options, GltfImportResult& out) {
   const cgltf_options cgltf_opts = makeCgltfOptions();
   cgltf_data* data = nullptr;
   const cgltf_result result = cgltf_parse_file(&cgltf_opts, path, &data);
@@ -604,7 +603,7 @@ bool importGltf(const char* path, const GltfImportOptions& options,
 }
 
 bool importGltfFromMemory(Span<const uint8> bytes, const char* path,
-                          const GltfImportOptions& options, GltfImportResult& out) {
+  const GltfImportOptions& options, GltfImportResult& out) {
   if (!path) {
     path = "";
   }
@@ -619,8 +618,8 @@ bool importGltfFromMemory(Span<const uint8> bytes, const char* path,
   return importParsed(cgltf_opts, data, path, options, out);
 }
 
-bool importGltfAssets(const char* path, const GltfImportOptions& /*options*/,
-                      ModelAsset& /*out*/) {
+bool importGltfAssets(
+  const char* path, const GltfImportOptions& /*options*/, ModelAsset& /*out*/) {
   ALOGE("glTF: asset import of '%s' is not implemented", path ? path : "");
   return false;
 }
