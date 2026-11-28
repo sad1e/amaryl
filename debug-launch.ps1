@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 
 param(
-    [string]$Target = "amaryl-editor.exe"
+    [string]$Target = "amaryl-app.exe"
 )
 
 Set-StrictMode -Version 2.0

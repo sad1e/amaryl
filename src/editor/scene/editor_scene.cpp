@@ -4,6 +4,18 @@
 
 namespace amaryl {
 
+namespace {
+
+std::string FileStem(std::string_view path) {
+  const size_t separator = path.find_last_of("/\\");
+  if (separator != std::string_view::npos) {
+    path.remove_prefix(separator + 1);
+  }
+  return std::string(path.substr(0, path.find_last_of('.')));
+}
+
+}  // namespace
+
 EditorScene::EditorScene(World& world, ModelLibrary& models)
     : world_(world), models_(models) {}
 
@@ -29,7 +41,32 @@ EntityHandle EditorScene::importModel(const std::string& path, EntityHandle pare
     models_.releaseUnused();
     return {};
   }
+
+  setName(root, FileStem(path));
+  if (const LoadedModel* loaded = models_.find(path)) {
+    const std::vector<SceneNodeAsset>& node_assets = loaded->scene.nodes;
+    for (size_t i = 0; i < nodes.size() && i < node_assets.size(); ++i) {
+      setName(nodes[i], node_assets[i].name);
+    }
+  }
   return root;
+}
+
+uint64 EditorScene::NameKey(EntityHandle entity) {
+  return static_cast<uint64>(reinterpret_cast<uintptr_t>(entity.handleAsVoid()));
+}
+
+std::string_view EditorScene::getName(EntityHandle entity) const {
+  const auto it = names_.find(NameKey(entity));
+  return it == names_.end() ? std::string_view{} : std::string_view(it->second);
+}
+
+void EditorScene::setName(EntityHandle entity, std::string name) {
+  if (name.empty()) {
+    names_.erase(NameKey(entity));
+  } else if (world_.entities.isAlive(entity)) {
+    names_[NameKey(entity)] = std::move(name);
+  }
 }
 
 void EditorScene::destroyEntity(EntityHandle entity) {
@@ -107,6 +144,10 @@ void EditorScene::collectGarbage() {
     return true;
   });
   models_.releaseUnused();
+  std::erase_if(names_, [this](const auto& entry) {
+    return !world_.entities.isAlive(
+      EntityHandle(reinterpret_cast<void*>(static_cast<uintptr_t>(entry.first))));
+  });
 }
 
 RenderProxyHandle EditorScene::getProxy(EntityHandle entity) const {

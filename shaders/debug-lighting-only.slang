@@ -62,7 +62,7 @@ float4 fragmentMain(VSOutput input) : SV_Target
 
     // Scene meshes are rendered white: albedo = 1, no texture sampling. The debug view
     // only shows lighting, which is faked here by the two verified inputs.
-    const float3 albedo = float3(1.0, 0.0, 1.0);
+    const float3 albedo = float3(0.1, 0.1, 0.1);
     float3 result = sampled.rgb * 0.5 + fromAddress.rgb * 0.5;
     result *= albedo;
 

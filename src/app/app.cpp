@@ -7,6 +7,10 @@
 #include "amaryl/core/filesystem/vfs.h"
 #include "amaryl/engine/engine.h"
 
+#if AMARYL_WITH_EDITOR
+#include "amaryl/editor/framework/editor_layer.h"
+#endif
+
 namespace amaryl {
 
 namespace {
@@ -17,6 +21,8 @@ inline bool ShowErrorMessageBox(
 }
 
 }  // namespace
+
+App::App() = default;
 
 App::~App() { App::shutdown(); }
 
@@ -31,7 +37,8 @@ bool App::initialize(const AppInitInfo& info) {
 
   name_ = info.name;
   if (!mountFileSystem()) {
-    ShowErrorMessageBox("b2 initialization failed", "Failed to mount the engine content.");
+    ShowErrorMessageBox(
+      "b2 initialization failed", "Failed to mount the engine content.");
     return false;
   }
 
@@ -70,6 +77,17 @@ bool App::initialize(const AppInitInfo& info) {
       "Engine initialization failed", "Failed to create the renderer.", window_);
     return false;
   }
+#if AMARYL_WITH_EDITOR
+  editor_ = std::make_unique<editor::EditorLayer>();
+  if (!editor_->init({.window = window_,
+        .display_scale = metrics_.display_scale,
+        .request_quit = [this] { requestQuit(); }})) {
+    ShowErrorMessageBox(
+      "Editor initialization failed", "Failed to create the editor.", window_);
+    editor_.reset();
+    return false;
+  }
+#endif
 
   initialized_ = true;
   quit_requested_ = false;
@@ -80,6 +98,10 @@ bool App::initialize(const AppInitInfo& info) {
 }
 
 void App::shutdown() {
+#if AMARYL_WITH_EDITOR
+  // Before the engine, the editor releases its world data and ImGui textures.
+  editor_.reset();
+#endif
   // Before the window, the swapchain references its surface.
   ShutdownEngine();
 
@@ -88,6 +110,7 @@ void App::shutdown() {
     window_ = nullptr;
   }
   VirtualFileSystem& vfs = GetVirtualFileSystem();
+  UnmountProject();
   vfs.unmount(kEngineScheme);
   vfs.unmount(kUserScheme);
 
@@ -117,6 +140,10 @@ bool App::mountFileSystem() {
     SDL_free(pref_path);
   } else {
     ALOGW("user:// is not mounted, SDL_GetPrefPath failed: %s", SDL_GetError());
+  }
+  if (project) {
+    MountProject(*project);
+    ALOGI("Project '%s' at '%s'", project->name.c_str(), project->root_path.c_str());
   }
   return true;
 }
@@ -187,6 +214,11 @@ bool App::resizeWindow(int32 width, int32 height) {
 }
 
 void App::processEvent(const SDL_Event& event) {
+#if AMARYL_WITH_EDITOR
+  if (editor_) {
+    editor_->processEvent(event);
+  }
+#endif
   if (getQuitState(event)) {
     requestQuit();
   }
@@ -258,9 +290,24 @@ bool App::tick() {
   return true;
 }
 
+bool App::prepareFrame(float delta_time) {
+#if AMARYL_WITH_EDITOR
+  if (editor_) {
+    editor_->buildFrame(delta_time);
+  }
+#else
+  (void)delta_time;
+#endif
+  return true;
+}
+
 bool App::renderFrame(float delta_time) {
   (void)delta_time;
+#if AMARYL_WITH_EDITOR
+  return kEngine->render(editor_ ? editor_->getDrawData() : nullptr);
+#else
   return kEngine->render();
+#endif
 }
 
 bool App::getQuitState(const SDL_Event& event) const {

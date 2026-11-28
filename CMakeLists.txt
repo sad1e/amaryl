@@ -20,6 +20,8 @@ set(AMARYL_INCLUDE_ROOT ${AMARYL_ROOT}/include)
 set(AMARYL_SOURCE_ROOT ${AMARYL_ROOT}/src)
 
 option(AMARYL_SUPPRESS_WARNINGS "Suppress selected compiler warnings" OFF)
+# OFF strips the editor from the application (deployment build).
+option(AMARYL_WITH_EDITOR "Build the editor and link it into the application" ON)
 if(AMARYL_SUPPRESS_WARNINGS)
   add_compile_options(
     $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-Wno-deprecated-declarations>
@@ -47,7 +49,9 @@ include(amaryl-core)
 include(amaryl-nrhi)
 include(amaryl-shaders)
 include(amaryl-engine)
-include(amaryl-editor)
+if(AMARYL_WITH_EDITOR)
+  include(amaryl-editor)
+endif()
 include(amaryl-app)
 if(AMARYL_ENABLE_TESTS)
   include(amaryl-tests)

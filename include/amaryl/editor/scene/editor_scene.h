@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "amaryl/editor/common.h"
@@ -25,8 +27,13 @@ struct EDITOR_API EditorScene final {
   NO_COPYABLE(EditorScene);
 
   // Imports the glTF file at `path` under a new root entity (a child of `parent` when
-  // set) and returns the root, empty when the file cannot be imported.
+  // set) and returns the root, empty when the file cannot be imported. The root is named
+  // after the file, the node entities after the glTF nodes.
   EntityHandle importModel(const std::string& path, EntityHandle parent = {});
+  // Empty when the entity has no name.
+  std::string_view getName(EntityHandle entity) const;
+  // An empty name removes the name.
+  void setName(EntityHandle entity, std::string name);
   // Destroys the entity with its descendants, then the overrides and models nobody uses.
   void destroyEntity(EntityHandle entity);
   void setLocalTRS(
@@ -52,11 +59,13 @@ struct EDITOR_API EditorScene final {
   bool isOverride(MaterialHandle material) const;
   uint32 getOverrideCount() const { return static_cast<uint32>(overrides_.size()); }
 
-  // Destroys the overrides and the models no render proxy uses anymore, call after
-  // World::sync() when transforms were destroyed outside of destroyEntity().
+  // Destroys the overrides, the models no render proxy uses anymore and the names of the
+  // destroyed entities, call after World::sync() when transforms were destroyed outside
+  // of destroyEntity().
   void collectGarbage();
 
  private:
+  static uint64 NameKey(EntityHandle entity);
   RenderProxyHandle getProxy(EntityHandle entity) const;
   void destroyOverrideIfUnused(MaterialHandle material);
 
@@ -64,6 +73,7 @@ struct EDITOR_API EditorScene final {
   ModelLibrary& models_;
   EntityHandle selection_{};
   std::vector<MaterialHandle> overrides_;
+  std::unordered_map<uint64, std::string> names_;
 };
 
 }  // namespace amaryl

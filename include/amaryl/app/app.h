@@ -2,8 +2,18 @@
 
 #include <SDL3/SDL.h>
 
+#include <memory>
+#include <optional>
+
 #include "amaryl/app/window_metrics.h"
 #include "amaryl/core/amaryl.h"
+#include "amaryl/engine/project/project.h"
+
+#if AMARYL_WITH_EDITOR
+namespace amaryl::editor {
+struct EditorLayer;
+}  // namespace amaryl::editor
+#endif
 
 namespace amaryl {
 
@@ -21,9 +31,13 @@ struct AppInitInfo {
 };
 
 struct App {
-  App() = default;
+  App();
   virtual ~App();
   NO_COPYABLE_AND_MOVEABLE(App);
+
+  // Mounted as project:// and cache:// on initialize, the app runs without project when
+  // empty.
+  std::optional<ProjectInfo> project;
 
   virtual bool initialize(const AppInitInfo& info);
   virtual void shutdown();
@@ -46,16 +60,19 @@ struct App {
 
  protected:
   void setMinimumLogicalSize(float width, float height);
-  // Mounts engine:// (`<exe>/engine/`) and user:// (the SDL pref path) before the engine
-  // is initialized. Override to mount project:// and cache://.
+  // Mounts engine:// (`<exe>/engine/`), user:// (the SDL pref path) and the project
+  // before the engine is initialized.
   virtual bool mountFileSystem();
-  virtual bool prepareFrame(float delta_time) { return true; }
+  virtual bool prepareFrame(float delta_time);
   virtual bool renderFrame(float delta_time);
 
  private:
   bool refreshWindowMetrics();
   bool applyMinimumLogicalSize();
   SDL_Point availableWindowSize() const;
+#if AMARYL_WITH_EDITOR
+  std::unique_ptr<editor::EditorLayer> editor_;
+#endif
   SDL_Window* window_{nullptr};
   std::string name_;
   uint32 width_{kDefaultWidth};

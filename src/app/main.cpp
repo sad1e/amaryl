@@ -1,17 +1,19 @@
-#include "amaryl/app/editor.h"
-
 #include <SDL3/SDL_main.h>
 
-#include <cstdarg>
-#include <cstdio>
 #include <cstdlib>
+#include <memory>
 
 #include "amaryl/app/app.h"
-#include "amaryl/core/filesystem/vfs.h"
 
 namespace {
 
-std::unique_ptr<amaryl::EditorApp> app;
+#if AMARYL_WITH_EDITOR
+constexpr const char* kAppName = "Amaryl Editor";
+#else
+constexpr const char* kAppName = "Amaryl";
+#endif
+
+std::unique_ptr<amaryl::App> app;
 uint32 frame_limit = 0;
 uint32 frame_count = 0;
 std::string screenshot_path;
@@ -39,14 +41,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     }
   }
 
-  app = std::make_unique<amaryl::EditorApp>();
+  app = std::make_unique<amaryl::App>();
   if (!project_path.empty()) {
     app->project = amaryl::LoadProject(project_path);
     if (!app->project) {
       return SDL_APP_FAILURE;
     }
   }
-  if (!app->initialize({.name = "Amaryl Editor",
+  if (!app->initialize({.name = kAppName,
         .width = amaryl::kDefaultWidth,
         .height = amaryl::kDefaultHeight,
         .hidden = hidden})) {
